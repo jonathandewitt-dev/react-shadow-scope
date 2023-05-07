@@ -31,7 +31,14 @@
   },
   "homepage": "https://github.com/jonathandewitt-dev/react-shadow-scope#readme",
   "devDependencies": {
+    "@types/react": "^18.2.6",
     "typescript": "^5.0.4",
-    "unbuild": "^1.2.1"
+    "unbuild": "^1.2.1",
+    "react": "^16.8.3 || ^18",
+    "react-dom": "^16.14.0 || ^18"
+  },
+  "peerDependencies": {
+    "react": "^16.8.3 || ^18",
+    "react-dom": "^16.14.0 || ^18"
   }
 }
