@@ -1,0 +1,37 @@
+{
+  "name": "react-shadow-scope",
+  "version": "0.0.0",
+  "description": "Brings Shadow DOM CSS encapsulation to React, along with a DSD-compatible <Template> tag.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonathandewitt-dev/react-shadow-scope.git"
+  },
+  "keywords": [
+    "css",
+    "scoped css",
+    "css encapsulation",
+    "encapsulated css",
+    "shadow dom",
+    "shadow dom encapsulation",
+    "declarative shadow dom"
+  ],
+  "author": "Jonathan DeWitt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jonathandewitt-dev/react-shadow-scope/issues"
+  },
+  "homepage": "https://github.com/jonathandewitt-dev/react-shadow-scope#readme",
+  "devDependencies": {
+    "typescript": "^5.0.4",
+    "unbuild": "^1.2.1"
+  }
+}
