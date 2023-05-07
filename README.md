@@ -20,6 +20,11 @@ npm i react-shadow-scope
 
 ## Usage
 
+<!-- TODO:
+  Add documentation for `stylesheets` attribute and `slottedContent` attribute.
+  Also, the below docs could use improvement.
+-->
+
 ```jsx
 import { css, Scope, Template } from 'react-shadow-scope';
 
