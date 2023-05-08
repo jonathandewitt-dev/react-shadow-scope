@@ -47,7 +47,7 @@ For better performance, you can create a new `CSSStyleSheet` object and pass it 
 
 We export a handy utility function (`css`) that will take care of this for you, while also detecting support and using a fallback when necessary. When rendering on the server, the styles will render in a `<style>` tag.
 
-{% For best results, avoid creating a new `CSSStyleSheet` each render. %}
+> For best results, avoid creating a new `CSSStyleSheet` each render.
 
 ```jsx
 import { useMemo } from 'react'
