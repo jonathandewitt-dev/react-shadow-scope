@@ -35,6 +35,7 @@ const MyComponent = () => (
         <h1>This title is red without underline</h1>
         <Scope stylesheet={` h1 { font-style: italic } `}>
           <h1>This title is italicized without underline or color</h1>
+        </Scope>
       </Scope>
     </div>
   </>
