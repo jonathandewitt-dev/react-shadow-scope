@@ -56,7 +56,7 @@ const MyComponent = () => (
 > NOTES:
 > - By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
 > - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
-> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either nest your `<Scope>` inside each `<li>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup.
+> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup.
 
 ### Constructed Style Sheets
 
