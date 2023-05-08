@@ -3,6 +3,17 @@
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
+```jsx
+<Scope stylesheet={styles}>
+```
+
+Traditional global CSS risks naming collisions, specificity conflicts, and unwanted style inheritance. Modern tools have been designed to solve these problems by using simulated encapsulation, but nothing can protect from inherited styles except for shadow DOM.
+
+This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's exactly what `react-shadow-scope` does behind the curtain.
+
+> If you're fond of Tailwind, just pass it to each scope. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
+
+As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the *single best tool we have*.
 
 ## Table of Contents
 
@@ -76,12 +87,12 @@ const MyComponent = () => {
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
 
 ```jsx
-<Scoped stylesheets={[theme, styles]}>
+<Scope stylesheets={[theme, styles]}>
 ```
 
 ### Declarative Shadow DOM
 
-If you want to use declarative shadow DOM directly, without the `<Scoped>` component, you can use `<Template>`, which adds support to React for the native `<template>` element, with some added features.
+If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>`, which adds support to React for the native `<template>` element, with some added features.
 
 ```jsx
 import { css, Template } from 'react-shadow-scope';
