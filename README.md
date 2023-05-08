@@ -39,12 +39,12 @@ import { Scope } from 'react-shadow-scope';
 const MyComponent = () => (
   <>
     {/* Scope gives you protection from inherited styles! */}
-    <style>{` #Demo h1 { color: blue; text-decoration: underline; } `}</style>
+    <style>{`#Demo h1 { color: blue; text-decoration: underline; }`}</style>
     <div id="Demo">
       <h1>This title is blue with underline</h1>
-      <Scope stylesheet={` h1 { color: red } `}>
+      <Scope stylesheet={`h1 { color: red; }`}>
         <h1>This title is red without underline</h1>
-        <Scope stylesheet={` h1 { font-style: italic } `}>
+        <Scope stylesheet={`h1 { font-style: italic; }`}>
           <h1>This title is italicized without underline or color</h1>
         </Scope>
       </Scope>
@@ -56,7 +56,7 @@ const MyComponent = () => (
 > NOTES:
 > - By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
 > - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
-> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup.
+> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
 ### Constructed Style Sheets
 
@@ -69,7 +69,7 @@ For better performance, you can create a new `CSSStyleSheet` object and pass it 
 ```jsx
 import { css, Scope } from 'react-shadow-scope';
 
-const styles = css` h1 { color: red } `;
+const styles = css`h1 { color: red }`;
 
 const MyComponent = () => (
   <>
