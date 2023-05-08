@@ -60,7 +60,7 @@ const MyComponent = () => (
 
 ### Normalize CSS
 
-This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opt-in by default to hopefulyl save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
+This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opt-in by default to hopefully save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
 
 ```jsx
 <Scope stylesheet={styles} normalize={false}>
