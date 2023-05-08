@@ -17,6 +17,12 @@ export type ScopeProps = React.PropsWithChildren<{
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */
   slottedContent?: React.ReactNode,
+  /**
+   * Some styles are included to make default behavior consistent across different browsers. Opt-out by setting this to false.
+   *
+   * @defaultValue `true`
+   */
+  normalize?: boolean,
 }>;
 
 type ExtractedStyleSheets = {
@@ -44,13 +50,13 @@ const extractStyleSheets = (
 };
 
 // Apply some defaults to make the scope more intuitive, these can be easily overridden by user-defined style
-const DEFAULT_STYLES = `
+const getDefaults = (normalize: boolean) => `
 /* note:
   Accessibility concerns of \`display: contents;\` have been fixed as of 2022.
   Remaining issues only affect certain tags, but divs are safe.
 */
 :host { display: contents; }
-${normalizedScope}
+${normalize ? normalizedScope : ''}
 `
 
 // Declare the custom tag name as JSX
@@ -64,7 +70,7 @@ declare global {
 
 export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
   (props, forwardedRef) => {
-    const { children, stylesheet, stylesheets = [], slottedContent, ...forwardedProps } = props;
+    const { children, stylesheet, stylesheets = [], slottedContent, normalize = true, ...forwardedProps } = props;
 
     const allStyleSheets = stylesheet
       ? [stylesheet, ...stylesheets]
@@ -76,7 +82,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
           <style>
-            {DEFAULT_STYLES}
+            {getDefaults(normalize)}
             {cssStrings.map((styles) => styles)}
           </style>
           {children}

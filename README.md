@@ -58,6 +58,16 @@ const MyComponent = () => (
 > - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
 > - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
+### Normalize CSS
+
+This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opt-in by default to hopefulyl save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
+
+```jsx
+<Scope stylesheet={styles} normalize={false}>
+```
+
+All normalized styles are contained inside a `@layer` called `normalize`, which gives them the lowest priority, making them easy to override.
+
 ### Constructed Style Sheets
 
 For better performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
