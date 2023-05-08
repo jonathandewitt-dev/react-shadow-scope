@@ -50,7 +50,7 @@ We export a handy utility function (`css`) that will take care of this for you, 
 > For best results, avoid creating a new `CSSStyleSheet` each render.
 
 ```jsx
-import { useMemo } from 'react'
+import { useMemo } from 'react';
 import { css, Scope } from 'react-shadow-scope';
 
 const MyComponent = () => {
