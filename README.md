@@ -22,6 +22,8 @@ npm i react-shadow-scope
 
 To create a new CSS scope, import the `Scope` component from the package and just pass a string to the `stylesheet` prop.
 
+> Note: `<Scope>` creates a `<div>` element, but applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because a `<div>` has no semantics to interfere with anyway.)
+
 ```jsx
 import { Scope } from 'react-shadow-scope';
 
