@@ -1,6 +1,6 @@
 import React from 'react';
 import { AdaptedStyleSheet, adoptedStylesSupported, normalizedScope } from './css-utils';
-import Template from './template';
+import { Template } from './template';
 
 export type ScopeProps = React.PropsWithChildren<{
   /**
@@ -46,14 +46,23 @@ const extractStyleSheets = (
 // Apply some defaults to make the scope more intuitive, these can be easily overridden by user-defined style
 const DEFAULT_STYLES = `
 /* note:
-  Accessibility concerns of \`display: contents\` have been fixed as of 2022.
+  Accessibility concerns of \`display: contents;\` have been fixed as of 2022.
   Remaining issues only affect certain tags, but divs are safe.
 */
 :host { display: contents; }
 ${normalizedScope}
 `
 
-const Scope = React.forwardRef<HTMLDivElement, ScopeProps>(
+// Declare the custom tag name as JSX
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'react-shadow-scope': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+    }
+  }
+}
+
+export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
   (props, forwardedRef) => {
     const { children, stylesheet, stylesheets = [], slottedContent, ...forwardedProps } = props;
 
@@ -64,7 +73,7 @@ const Scope = React.forwardRef<HTMLDivElement, ScopeProps>(
     const { cssStrings, cssStyleSheets } = extractStyleSheets(allStyleSheets);
 
     return (
-      <div ref={forwardedRef} {...forwardedProps}>
+      <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
           <style>
             {DEFAULT_STYLES}
@@ -73,9 +82,7 @@ const Scope = React.forwardRef<HTMLDivElement, ScopeProps>(
           {children}
         </Template>
         {slottedContent}
-      </div>
+      </react-shadow-scope>
     );
   },
 );
-
-export default Scope;

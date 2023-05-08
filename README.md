@@ -9,7 +9,7 @@
 
 Traditional global CSS risks naming collisions, specificity conflicts, and unwanted style inheritance. Modern tools have been designed to solve these problems by using simulated encapsulation, but nothing can protect from inherited styles except for shadow DOM.
 
-This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's exactly what `react-shadow-scope` does behind the curtain.
+This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
 > If you're fond of Tailwind, just pass it to each scope. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
 
@@ -33,8 +33,6 @@ npm i react-shadow-scope
 
 To create a new CSS scope, import the `Scope` component from the package and just pass a string to the `stylesheet` prop.
 
-> Note: `<Scope>` creates a `<div>` element, but applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because a `<div>` has no semantics to interfere with anyway.)
-
 ```jsx
 import { Scope } from 'react-shadow-scope';
 
@@ -55,33 +53,31 @@ const MyComponent = () => (
 );
 ```
 
+> NOTES:
+> - By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
+> - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
+> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either nest your `<Scope>` inside each `<li>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup.
+
 ### Constructed Style Sheets
 
 For better performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
 
-We export a handy utility function (`css`) that will take care of this for you, while also detecting support and using a fallback when necessary. When rendering on the server, the styles will render in a `<style>` tag.
+`react-shadow-scope` exports a tagged template function (`css`) that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
 
 > For best results, avoid creating a new `CSSStyleSheet` each render.
 
 ```jsx
-import { useMemo } from 'react';
 import { css, Scope } from 'react-shadow-scope';
 
-const MyComponent = () => {
+const styles = css` h1 { color: red } `;
 
-  const styles = useMemo(
-    () => css` h1 { color: red } `,
-    [],
-  );
-
-  return (
-    <>
-      <Scope stylesheet={styles}>
-        <h1>title here</h1>
-      </Scope>
-    </>
-  );
-};
+const MyComponent = () => (
+  <>
+    <Scope stylesheet={styles}>
+      <h1>title here</h1>
+    </Scope>
+  </>
+);
 ```
 
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
@@ -90,41 +86,43 @@ To use multiple stylesheets, you can also use the `stylesheets` prop (plural) an
 <Scope stylesheets={[theme, styles]}>
 ```
 
+### Excluding Children From the Scope
+
+Most of the time, you won't want the children to be rendered in the same CSS scope as the component. In such a case, you will want to use `<slot>` tags and pass children to the `slottedContent` prop.
+
+```jsx
+<Scope stylesheet={styles} slottedContent={children}>
+  <slot></slot>
+</Scope>
+```
+
+This is just an abstraction over shadow DOM, so anything you can do with shadow DOM, you can do with `slottedContent`. This includes named slots and so on. But at that point, you may be entering territory where it becomes more practical to just use the bare syntax of declarative shadow DOM... which you can also do with this package!
+
 ### Declarative Shadow DOM
 
-If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>`, which adds support to React for the native `<template>` element, with some added features.
+If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>`. This adds support to React for the native `<template>` element, with some added features.
 
 ```jsx
 import { css, Template } from 'react-shadow-scope';
 
-const MyComponent = () => {
+const styles = css`/* styles here */`;
 
-  const styles = useMemo(
-    () => css`/* css styles here */`,
-    [],
-  );
-
-  // Note the declarative `adoptedStyleSheets` prop!
-  return (
-    <card-element>
-      <Template
-        shadowrootmode="closed"
-        adoptedStyleSheets={[styles]}
-      >
-        <article>
-          <header>
-            <h3><slot name="heading">(Untitled)</slot></h3>
-          </header>
-          <div className="body">
-            <slot>(No content)</slot>
-          </div>
-        </article>
-      </Template>
-      <span slot="heading">Title Here</span>
-      <p>Inside Default Slot</p>
-    </card-element>
-  );
-};
+const MyComponent = () => (
+  <card-element>
+    {/* Note the declarative `adoptedStyleSheets` prop! */}
+    <Template
+      shadowrootmode="closed"
+      adoptedStyleSheets={[styles]}
+    >
+      <h1>
+        <slot name="heading">(Untitled)</slot>
+      </h1>
+      <slot>(No content)</slot>
+    </Template>
+    <span slot="heading">Title Here</span>
+    <p>Inside Default Slot</p>
+  </card-element>
+);
 ```
 
 ## Maintainers

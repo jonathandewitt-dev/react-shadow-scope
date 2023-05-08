@@ -87,7 +87,7 @@ const getMismatchErr = (type: 'mode' | 'delegatesFocus') =>
  * </custom-element>
  * ```
  */
-const Template = React.forwardRef<
+export const Template = React.forwardRef<
   HTMLTemplateElement | HTMLSpanElement,
   TemplateProps
 >((props, forwardedRef) => {
@@ -199,5 +199,3 @@ const Template = React.forwardRef<
     <span ref={templateRef} {...forwardedProps}></span>
   );
 });
-
-export default Template;
