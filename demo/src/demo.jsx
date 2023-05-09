@@ -1,5 +1,5 @@
-import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
-// import { css, Scope, Template, Tailwind } from '../../src';
+// import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
+import { css, Scope, Template, Tailwind } from '../../src';
 
 export const Demo = () => {
   return (
