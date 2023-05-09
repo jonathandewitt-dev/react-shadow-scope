@@ -11,7 +11,7 @@ Traditional global CSS risks naming collisions, specificity conflicts, and unwan
 
 This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
-> If you're fond of Tailwind, just pass it to each scope. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
+> This package supports scoped Tailwind with a `<Tailwind>` component. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
 
 As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the *single best tool we have*.
 
@@ -28,6 +28,8 @@ As a rule of thumb, you should limit your global CSS to little or nothing. The n
 ```
 npm i react-shadow-scope
 ```
+
+---
 
 ## Usage
 
@@ -58,6 +60,8 @@ const MyComponent = () => (
 > - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
 > - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
+---
+
 ### Normalize CSS
 
 This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opt-in by default to hopefully save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
@@ -67,6 +71,8 @@ This package borrows from [normalize.css](https://necolas.github.io/normalize.cs
 ```
 
 All normalized styles are contained inside a `@layer` called `normalize`, which gives them the lowest priority, making them easy to override.
+
+---
 
 ### Constructed Style Sheets
 
@@ -96,6 +102,8 @@ To use multiple stylesheets, you can also use the `stylesheets` prop (plural) an
 <Scope stylesheets={[theme, styles]}>
 ```
 
+---
+
 ### Excluding Children From the Scope
 
 Most of the time, you won't want the children to be rendered in the same CSS scope as the component. In such a case, you will want to use `<slot>` tags and pass children to the `slottedContent` prop.
@@ -107,6 +115,8 @@ Most of the time, you won't want the children to be rendered in the same CSS sco
 ```
 
 This is just an abstraction over shadow DOM, so anything you can do with shadow DOM, you can do with `slottedContent`. This includes named slots and so on. But at that point, you may be entering territory where it becomes more practical to just use the bare syntax of declarative shadow DOM... which you can also do with this package!
+
+---
 
 ### Declarative Shadow DOM
 
@@ -134,6 +144,38 @@ const MyComponent = () => (
   </card-element>
 );
 ```
+
+---
+
+### Tailwind
+
+Tailwind support is already built-in so you don't have to roll your own solution.
+
+```jsx
+<Tailwind slottedContent={children}>
+  <h1 className="text-slate-900 font-extrabold text-4xl">
+    Hello from the Shadow DOM!
+  </h1>
+  <slot></slot>
+</Tailwind>
+```
+
+> Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) Be sure to *remove* it from the `<link>` tag in your HTML. You may want to add this in its place:
+> ```html
+> <style>
+>   body {
+>     margin: 0;
+>     line-height: inherit;
+>   }
+> </style>
+> ```
+
+#### Tailwind Props
+- `href` - This is `/tailwind.css` by default. This will be fetched once and cached.
+- `customStyles` - Pass a string or `CSSStyleSheet` (the `css` tagged template function is recommended)
+- `slottedContent` - Works the same as `slottedContent` on the `<Scope>` component.
+
+---
 
 ## Maintainers
 
