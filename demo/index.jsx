@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { css, Scope, Template } from 'react-shadow-scope';
+import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
 
 const App = () => (
   <>
@@ -90,6 +90,15 @@ const App = () => (
         complexity for greater flexibility and control.
       </p>
     </card-element>
+
+    <Tailwind>
+      <h1 className="text-slate-900 font-extrabold text-4xl">
+        Hello From Shadow DOM
+      </h1>
+    </Tailwind>
+    <h1 className="text-slate-900 font-extrabold text-4xl">
+      Hello From Light DOM
+    </h1>
   </>
 );
 
