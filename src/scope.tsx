@@ -68,6 +68,17 @@ declare global {
   }
 }
 
+/**
+ * Creates a shadow DOM encapsulated scope for CSS.
+ *
+ * @example
+ * ```tsx
+ * <Scope stylesheet={styles} slottedContent={children}>
+ *   <h1>Shadow DOM Content</h1>
+ *   <slot></slot>
+ * </Scope>
+ * ```
+ */
 export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
   (props, forwardedRef) => {
     const { children, stylesheet, stylesheets = [], slottedContent, normalize = true, ...forwardedProps } = props;
