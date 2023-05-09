@@ -1,5 +1,5 @@
-// import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
-import { css, Scope, Template, Tailwind } from '../../src';
+import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
+// import { css, Scope, Template, Tailwind } from '../../src';
 
 export const Demo = () => {
   return (
@@ -93,13 +93,13 @@ export const Demo = () => {
       </card-element>
 
       <Tailwind>
-        <h1 className="text-slate-900 font-extrabold text-4xl">
-          Hello From Shadow DOM
-        </h1>
+        <h2 className="text-slate-900 font-extrabold text-4xl">
+          Tailwind in Shadow DOM!
+        </h2>
+        <p>
+          This block was rendered inside of a shadow DOM scope with Tailwind.
+        </p>
       </Tailwind>
-      <h1 className="text-slate-900 font-extrabold text-4xl">
-        Hello From Light DOM
-      </h1>
     </>
   )
 }
