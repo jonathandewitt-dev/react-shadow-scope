@@ -19,7 +19,12 @@ export type TailwindProps = React.PropsWithChildren<{
   slottedContent?: React.ReactNode,
 }>;
 
-const cache = { stylesheets: [] };
+// This object is kept in memory to prevent fetching the stylesheet(s) more than once.
+const cache: {
+  stylesheets: CSSStyleSheet[],
+} = {
+  stylesheets: [],
+};
 
 /**
  * Creates a shadow DOM encapsulated scope for Tailwind.

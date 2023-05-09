@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { AriaAttributes, DOMAttributes } from 'react';
 import ReactDOM from 'react-dom';
 
 let declarativeShadowDOMSupported: boolean | null = null;
@@ -14,9 +14,17 @@ function checkDSDSupport(): boolean {
   return declarativeShadowDOMSupported;
 }
 
+/**
+ * Proxying these types works around the error:
+ * "Exported variable <variable name> has or is using private name <private name>"
+ * @see https://github.com/microsoft/TypeScript/issues/6307
+ */
+type AriaAttrs = AriaAttributes;
+type DomAttrs<T> = DOMAttributes<T>;
+
 // We have to patch React's interface for HTML attributes for now, since it currently errors on `shadowrootmode`
 declare module 'react' {
-  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+  interface HTMLAttributes<T> extends AriaAttrs, DomAttrs<T> {
     /**
      * The encapsulation mode for the shadow DOM tree.
      *
