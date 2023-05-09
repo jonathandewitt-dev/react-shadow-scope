@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-shadow-scope": "^0.4.0"
+    "react-shadow-scope": "^0.0.1-experimental-a1be365a66edcc3f"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
