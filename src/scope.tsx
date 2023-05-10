@@ -98,17 +98,29 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       ...forwardedProps
     } = props;
 
-    const [cssStyleSheets, setCssStyleSheets] = React.useState<CSSStyleSheet[]>([]);
-    const allStyleSheets = React.useMemo(
-      () => stylesheet ? [stylesheet, ...stylesheets] : stylesheets,
+    const { cssStyleSheets, cssStrings } = React.useMemo(
+      () => {
+        const allStylesheets = typeof stylesheet !== 'undefined'
+          ? [stylesheet, ...stylesheets]
+          : stylesheets;
+        const cssStyleSheets: CSSStyleSheet[] = [];
+        const cssStrings: string[] = [];
+        for (const currentStylesheet of allStylesheets) {
+          if (currentStylesheet instanceof CSSStyleSheet) {
+            cssStyleSheets.push(currentStylesheet);
+          } else if (typeof currentStylesheet === 'string') {
+            cssStrings.push(currentStylesheet);
+          } else {
+            console.warn(
+              'An invalid stylesheet was passed to `<Scope>`, skipping...',
+            );
+          }
+        }
+        return { cssStyleSheets, cssStrings };
+      },
       [stylesheet, stylesheets],
     );
-    const cssStrings = React.useMemo(
-      () => allStyleSheets.filter(
-        (stylesheet): stylesheet is string => typeof stylesheet === 'string',
-      ),
-      [allStyleSheets],
-    );
+    const [allCSSStyleSheets, setAllCSSStyleSheets] = React.useState<CSSStyleSheet[]>(cssStyleSheets);
 
     const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
     const allHrefs = React.useMemo(
@@ -121,10 +133,8 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       const currentCssStyleSheets: CSSStyleSheet[] = [];
 
       // add stylesheets from props
-      for (const currentCssStyleSheet of allStyleSheets) {
-        if (currentCssStyleSheet instanceof CSSStyleSheet) {
-          currentCssStyleSheets.push(currentCssStyleSheet);
-        }
+      for (const currentCssStyleSheet of cssStyleSheets) {
+        currentCssStyleSheets.push(currentCssStyleSheet);
       }
 
       // Request or load from cache
@@ -162,13 +172,13 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
               }
             }
           }
-          setCssStyleSheets(currentCssStyleSheets);
+          setAllCSSStyleSheets(currentCssStyleSheets);
           setHrefsLoaded(true);
         });
       } else {
 
         // if there are no requests to wait for, set immediately
-        setCssStyleSheets(currentCssStyleSheets);
+        setAllCSSStyleSheets(currentCssStyleSheets);
         setHrefsLoaded(true);
       }
 
@@ -182,17 +192,17 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     const styleContents = React.useMemo(
       () => `
-        ${!hrefsLoaded ? allHrefs.map((href) => `@import url(${href});`) : ''}
+        ${!hrefsLoaded ? allHrefs.map((href) => `@import url(${href});`).join('\n') : ''}
         ${normalize && typeof cache.normalize === 'string' ? cache.normalize : ''}
         ${typeof cache.base === 'string' ? cache.base : ''}
-        ${cssStrings.length > 0 ? cssStrings : ''}
+        ${cssStrings.length > 0 ? cssStrings.join('\n') : ''}
       `.trim(),
       [hrefsLoaded, normalize, cache.normalize, cache.base, cssStrings],
     );
 
     return (
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
-        <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
+        <Template shadowrootmode="open" adoptedStyleSheets={allCSSStyleSheets}>
           {styleContents !== ''
             ? <style>{styleContents}</style>
             : <></>
