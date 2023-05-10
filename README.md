@@ -11,7 +11,7 @@ Traditional global CSS risks naming collisions, specificity conflicts, and unwan
 
 This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
-> This package supports scoped Tailwind with a `<Tailwind>` component. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
+> This package supports Tailwind in the shadow DOM via the [`<Tailwind>` component](#tailwind). Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
 
 As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the *single best tool we have*.
 
@@ -28,8 +28,6 @@ As a rule of thumb, you should limit your global CSS to little or nothing. The n
 ```
 npm i react-shadow-scope
 ```
-
----
 
 ## Usage
 
@@ -174,8 +172,6 @@ Tailwind support is already built-in so you don't have to roll your own solution
 - `href` - This is `/tailwind.css` by default. This will be fetched once and cached.
 - `customStyles` - Pass a string or `CSSStyleSheet` (the `css` tagged template function is recommended)
 - `slottedContent` - Works the same as `slottedContent` on the `<Scope>` component.
-
----
 
 ## Maintainers
 
