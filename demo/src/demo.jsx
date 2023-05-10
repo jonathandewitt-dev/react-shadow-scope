@@ -1,5 +1,5 @@
-import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
-// import { css, Scope, Template, Tailwind } from '../../src';
+// import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
+import { css, Scope, Template, Tailwind } from '../../src';
 
 export const Demo = () => {
   return (
@@ -91,6 +91,10 @@ export const Demo = () => {
           complexity for greater flexibility and control.
         </p>
       </card-element>
+
+      <Scope href="/styles.css">
+        <p className="info">These styles were fetched with the `href` prop.</p>
+      </Scope>
 
       <Tailwind>
         <h2 className="text-slate-900 font-extrabold text-4xl">
