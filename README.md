@@ -19,6 +19,13 @@ As a rule of thumb, you should limit your global CSS to little or nothing. The n
 
 - [Install](#install)
 - [Usage](#usage)
+  - [Scope](#scope)
+  - [Normalize](#normalize)
+  - [Constructed Style Sheets](#constructed-style-sheets)
+  - [Remote Style Sheets](#remote-style-sheets)
+  - [Excluding Children From the Scope](#excluding-children-from-the-scope)
+  - [Declarative Shadow DOM](#declarative-shadow-dom)
+  - [Tailwind](#tailwind)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -30,6 +37,8 @@ npm i react-shadow-scope
 ```
 
 ## Usage
+
+### Scope
 
 To create a new CSS scope, import the `Scope` component from the package and just pass a string to the `stylesheet` prop.
 
@@ -98,6 +107,26 @@ To use multiple stylesheets, you can also use the `stylesheets` prop (plural) an
 
 ```jsx
 <Scope stylesheets={[theme, styles]}>
+```
+
+---
+
+### Remote Style Sheets
+
+If you'd rather save static assets, or you depend on a third-party stylesheet, you can pass a (relative or absolute) URL to the `href` prop.
+
+```jsx
+<Scope href="/mystyles.css">
+```
+
+This will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported (or it's rendering on the server), it will fall back on a `<style>` tag with an `@import` rule.
+
+For the best performance, all stylesheets are cached by href, so they won't be fetched multiple times even if they were fetched by a different `<Scope>`.
+
+You can also fetch multiple stylesheets using the `hrefs` (plural) prop.
+
+```jsx
+<Scope hrefs={['/theme.css', '/mystyles.css']}>
 ```
 
 ---
