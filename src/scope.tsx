@@ -39,12 +39,12 @@ type Cache = {
   base: AdaptedStyleSheet,
   normalize: AdaptedStyleSheet,
   stylesheets: Map<string, CSSStyleSheet>,
-}
+};
 
 type CSSResponse = {
   currentHref: string,
   text: string,
-}
+};
 
 // This object is kept in memory to prevent fetching and/or
 // constructing the stylesheet(s) more than once.
