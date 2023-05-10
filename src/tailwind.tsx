@@ -87,7 +87,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
             {adoptedStylesSupported
               ? ''
               : `
-                @import url('${href}');
+                @import url(${href});
                 ${customStyles}
                 `
             }
