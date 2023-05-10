@@ -43,10 +43,8 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
   (props, forwardedRef) => {
     const { children, href = '/tailwind.css', customStyles, slottedContent, ...forwardedProps } = props;
 
-    const [
-      cssStyleSheets,
-      setCssStyleSheets,
-    ] = React.useState<CSSStyleSheet[]>([]);
+    const [cssStyleSheets, setCssStyleSheets] = React.useState<CSSStyleSheet[]>([]);
+    const [hrefLoaded, setHrefLoaded] = React.useState<boolean>(false);
 
     React.useEffect(() => {
       if (cache.stylesheets.length === 0) {
@@ -74,24 +72,34 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
               }
             }
             setCssStyleSheets(cache.stylesheets);
+            setHrefLoaded(true);
           });
       } else {
         setCssStyleSheets(cache.stylesheets);
+        setHrefLoaded(true);
       }
     }, []);
+
+    const styleContents = React.useMemo(
+      () => !hrefLoaded || !adoptedStylesSupported
+        ? `
+          /*
+          This fallback will be missing some global defaults due to <html> being outside the scope.
+          */
+          @import url(${href});
+          ${customStyles}
+        `
+        : '',
+      [href, customStyles, hrefLoaded, adoptedStylesSupported],
+    );
 
     return (
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
-          <style>
-            {adoptedStylesSupported
-              ? ''
-              : `
-                @import url(${href});
-                ${customStyles}
-                `
-            }
-          </style>
+          {styleContents !== ''
+            ? <style>{styleContents}</style>
+            : <></>
+          }
           {children}
         </Template>
         {slottedContent}
