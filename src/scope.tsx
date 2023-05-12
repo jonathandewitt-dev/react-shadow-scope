@@ -192,7 +192,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     const styleContents = React.useMemo(
       () => `
-        ${!hrefsLoaded ? allHrefs.map((href) => `@import url(${href});`).join('\n') : ''}
         ${normalize && typeof cache.normalize === 'string' ? cache.normalize : ''}
         ${typeof cache.base === 'string' ? cache.base : ''}
         ${cssStrings.length > 0 ? cssStrings.join('\n') : ''}
@@ -203,6 +202,15 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
     return (
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={allCSSStyleSheets}>
+          {!hrefsLoaded
+            ? allHrefs.map((href) => (
+                <React.Fragment key={href}>
+                  <link rel="preload" href={href} as="style" />
+                  <link rel="stylesheet" href={href} />
+                </React.Fragment>
+              ))
+            : <></>
+          }
           {styleContents !== ''
             ? <style>{styleContents}</style>
             : <></>

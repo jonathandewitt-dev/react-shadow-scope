@@ -81,21 +81,27 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
     }, []);
 
     const styleContents = React.useMemo(
-      () => !hrefLoaded || !adoptedStylesSupported
-        ? `
-          /*
-          This fallback will be missing some global defaults due to <html> being outside the scope.
-          */
-          @import url(${href});
-          ${customStyles}
-        `
+      () => (!hrefLoaded || !adoptedStylesSupported) && typeof customStyles === 'string'
+        ? customStyles
         : '',
-      [href, customStyles, hrefLoaded, adoptedStylesSupported],
+      [customStyles, hrefLoaded, adoptedStylesSupported],
     );
 
     return (
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
+          {!hrefLoaded
+
+            /**
+             * This fallback will be missing some global defaults due to <html> being outside the scope.
+             * @see https://github.com/tailwindlabs/tailwindcss/pull/11200
+             */
+            ? <>
+                <link rel="preload" href={href} as="styles" />
+                <link rel="stylesheet" href={href} />
+              </>
+            : <></>
+          }
           {styleContents !== ''
             ? <style>{styleContents}</style>
             : <></>
