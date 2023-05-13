@@ -119,7 +119,7 @@ If you'd rather save static assets, or you depend on a third-party stylesheet, y
 <Scope href="/mystyles.css">
 ```
 
-This will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported (or it's rendering on the server), it will fall back on a `<style>` tag with an `@import` rule.
+This will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported (or it's rendering on the server), it will fall back on a `<link>` tag.
 
 For the best performance, all stylesheets are cached by href, so they won't be fetched multiple times even if they were fetched by a different `<Scope>`.
 
@@ -127,6 +127,22 @@ You can also fetch multiple stylesheets using the `hrefs` (plural) prop.
 
 ```jsx
 <Scope hrefs={['/theme.css', '/mystyles.css']}>
+```
+
+When linking external stylesheets, server-rendered components will appear as expected on the first paint. Client rendered components, however, would have a FOUC issue if not for some extra care. While the styles are busy loading on the client, we apply `:host { visibility: hidden; }` by default. These styles can be customized as well, and will only apply while the fetch promise is pending.
+```jsx
+const pendingStyles = css`
+  :host {
+    display: block;
+    opacity: 0.3;
+  }
+`;
+
+return (
+  <Scope href="/mystyles.css" pendingStyles={pendingStyles}>
+    ...
+  </Scope>
+);
 ```
 
 ---
