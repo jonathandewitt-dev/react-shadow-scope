@@ -97,7 +97,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
              * @see https://github.com/tailwindlabs/tailwindcss/pull/11200
              */
             ? <>
-                <link rel="preload" href={href} as="styles" />
+                <link rel="preload" href={href} as="style" />
                 <link rel="stylesheet" href={href} />
               </>
             : <></>
