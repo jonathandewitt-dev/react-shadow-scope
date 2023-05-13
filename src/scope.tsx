@@ -24,6 +24,12 @@ export type ScopeProps = React.PropsWithChildren<{
    */
   hrefs?: string[],
   /**
+   * Styles that will apply only when an external stylesheet is in the process of being fetched.
+   * 
+   * @defaultValue `:host { visibility: hidden; }`
+   */
+  pendingStyles?: AdaptedStyleSheet,
+  /**
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */
   slottedContent?: React.ReactNode,
@@ -93,19 +99,28 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       stylesheets = [],
       href,
       hrefs = [],
+      pendingStyles = css`:host { visibility: hidden; }`,
       slottedContent,
       normalize = true,
       ...forwardedProps
     } = props;
+
+    const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
+    const allHrefs = React.useMemo(
+      () => typeof href !== 'undefined' ? [href, ...hrefs] : hrefs,
+      [href, hrefs],
+    );
+    const pending = typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded;
 
     const { cssStyleSheets, cssStrings } = React.useMemo(
       () => {
         const allStylesheets = [
           cache.normalize,
           cache.base,
-          ...(typeof stylesheet !== 'undefined' ? [stylesheet] : []),
           ...stylesheets,
         ];
+        if (pending) allStylesheets.push(pendingStyles);
+        if (typeof stylesheet !== 'undefined') allStylesheets.push(stylesheet);
         const cssStyleSheets: CSSStyleSheet[] = [];
         const cssStrings: string[] = [];
         for (const currentStylesheet of allStylesheets) {
@@ -121,15 +136,9 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         }
         return { cssStyleSheets, cssStrings };
       },
-      [stylesheet, stylesheets],
+      [pending, stylesheet, stylesheets],
     );
     const [allCSSStyleSheets, setAllCSSStyleSheets] = React.useState<CSSStyleSheet[]>(cssStyleSheets);
-
-    const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
-    const allHrefs = React.useMemo(
-      () => typeof href !== 'undefined' ? [href, ...hrefs] : hrefs,
-      [href, hrefs],
-    );
 
     // load all stylesheets
     React.useEffect(() => {
@@ -191,7 +200,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
           abortController.abort();
         }
       };
-    }, []);
+    }, [pending]);
 
     const styleContents = React.useMemo(
       () => `
@@ -217,10 +226,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
                   <link rel="stylesheet" href={href} />
                 </React.Fragment>
               ))
-            : <></>
-          }
-          {typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded
-            ? <style>{`:host { visibility: hidden; }`}</style>
             : <></>
           }
           {styleContents !== ''
