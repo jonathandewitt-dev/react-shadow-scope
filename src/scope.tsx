@@ -100,9 +100,12 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     const { cssStyleSheets, cssStrings } = React.useMemo(
       () => {
-        const allStylesheets = typeof stylesheet !== 'undefined'
-          ? [stylesheet, ...stylesheets]
-          : stylesheets;
+        const allStylesheets = [
+          cache.normalize,
+          cache.base,
+          ...(typeof stylesheet !== 'undefined' ? [stylesheet] : []),
+          ...stylesheets,
+        ];
         const cssStyleSheets: CSSStyleSheet[] = [];
         const cssStrings: string[] = [];
         for (const currentStylesheet of allStylesheets) {
@@ -214,6 +217,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
                   <link rel="stylesheet" href={href} />
                 </React.Fragment>
               ))
+            : <></>
+          }
+          {typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded
+            ? <style>{`:host { visibility: hidden; }`}</style>
             : <></>
           }
           {styleContents !== ''

@@ -53,7 +53,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
           .then((tailwind: string) => {
 
             // since html is out of scope, we have to replace it with :host...
-            const scopedTailwind = tailwind.replace(
+            const tailwindForShadowDOM = tailwind.replace(
               /(?:^|\s)(html)(?:[^-_a-z])/gi,
               ':host',
             );
@@ -61,7 +61,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
               :host {
                 display: contents;
               }
-              ${scopedTailwind}
+              ${tailwindForShadowDOM}
             `;
             if (adoptedStylesSupported) {
               if (stylesheet instanceof CSSStyleSheet) {
@@ -100,6 +100,10 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
                 <link rel="preload" href={href} as="styles" />
                 <link rel="stylesheet" href={href} />
               </>
+            : <></>
+          }
+          {typeof window !== 'undefined' && !hrefLoaded
+            ? <style>{`:host { visibility: hidden; }`}</style>
             : <></>
           }
           {styleContents !== ''
