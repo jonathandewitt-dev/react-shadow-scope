@@ -1,15 +1,23 @@
 import React, { AriaAttributes, DOMAttributes } from 'react';
 import ReactDOM from 'react-dom';
 
+// caching the result out here avoids parsing a fragment for each component instance
 let declarativeShadowDOMSupported: boolean | null = null;
 function checkDSDSupport(): boolean {
-  if (declarativeShadowDOMSupported !== null) return declarativeShadowDOMSupported;
-  const html = `<div><template shadowrootmode="open"></template></div>`;
 
-  // @ts-ignore-next-line: TS doesn't know the DOMParser supports a 3rd argument.
-  const fragment = new DOMParser().parseFromString(html, 'text/html', {
-    includeShadowRoots: true,
-  });
+  // If it's rendering server side, just proceed as if it's supported.
+  if (typeof window === 'undefined') return true;
+  if (declarativeShadowDOMSupported !== null) return declarativeShadowDOMSupported;
+  if (typeof DOMParser === 'undefined') return false;
+
+  // Parse a DSD fragment to check
+  const fragment = new DOMParser().parseFromString(
+    `<div><template shadowrootmode="open"></template></div>`,
+    'text/html',
+
+    // @ts-ignore-next-line; TS doesn't know the `parseFromString` supports a 3rd argument.
+    { includeShadowRoots: true },
+  );
   declarativeShadowDOMSupported = !!fragment.querySelector('div')?.shadowRoot;
   return declarativeShadowDOMSupported;
 }
@@ -52,7 +60,7 @@ export type TemplateProps = React.PropsWithChildren<
      */
     delegatesFocus?: boolean;
     /**
-     * A list of constructed stylesheets to adopt.
+     * A list of constructed stylesheets to adopt. (This feature is not natively available.)
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet
      */
@@ -114,12 +122,10 @@ export const Template = React.forwardRef<
     mode: shadowrootmode ?? 'open',
   });
   const [initialized, setInitialized] = React.useState(false);
-  const [dsdSupported, setDsdSupported] = React.useState(true);
-
-  // Check browser support for declarative shadow DOM only once
-  React.useEffect(() => {
-    setDsdSupported(checkDSDSupport());
-  }, []);
+  const dsdSupported = React.useMemo(
+    () => checkDSDSupport(),
+    [declarativeShadowDOMSupported],
+  );
 
   // Adopt/reset stylesheets if needed
   React.useEffect(() => {

@@ -203,6 +203,11 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={allCSSStyleSheets}>
           {!hrefsLoaded
+
+            /**
+             * Use preload link to avoid FOUC (when rendered on the server)
+             * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
+             */
             ? allHrefs.map((href) => (
                 <React.Fragment key={href}>
                   <link rel="preload" href={href} as="style" />
