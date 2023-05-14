@@ -1,7 +1,6 @@
-// import { css, Scope, Template, Tailwind } from 'react-shadow-scope';
-import { css, Scope, Template, Tailwind } from '../../src';
-
-export const Demo = () => {
+// passing in react-shadow-scope so it can be shared between demos
+export const Demo = ({ reactShadowScope }) => {
+  const { css, Scope, Template, Tailwind } = reactShadowScope;
   return (
     <>
       <h1>Encapsulation is cool</h1>

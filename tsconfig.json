@@ -10,4 +10,5 @@
     "baseUrl": ".",
     "types": ["react"],
   },
+  "exclude": ["demo"],
 }

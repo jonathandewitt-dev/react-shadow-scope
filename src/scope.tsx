@@ -166,9 +166,9 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         abortControllers.push(abortController);
         requests.push(
           fetch(currentHref, { signal: abortController.signal })
-          .then(async (response: Response) =>
-            ({ currentHref, text: await response.text() })
-          ),
+            .then(async (response: Response) =>
+              ({ currentHref, text: await response.text() })
+            ),
         );
       }
 
