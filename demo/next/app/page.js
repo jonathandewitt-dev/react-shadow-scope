@@ -1,6 +1,7 @@
 'use client';
 
-import { Scope, css, Template, Tailwind } from 'react-shadow-scope';
+// import { Scope, css, Template, Tailwind } from 'react-shadow-scope';
+import { Scope, css, Template, Tailwind } from '../../../dist';
 
 export default function Demo() {
   return (

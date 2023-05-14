@@ -1,5 +1,5 @@
 import React from 'react';
-import { AdaptedStyleSheet, adoptedStylesSupported, css, normalizedScope } from './css-utils';
+import { AdaptedStyleSheet, adoptedStylesSupported, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
 
 export type ScopeProps = React.PropsWithChildren<{
@@ -124,7 +124,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         const cssStyleSheets: CSSStyleSheet[] = [];
         const cssStrings: string[] = [];
         for (const currentStylesheet of allStylesheets) {
-          if (currentStylesheet instanceof CSSStyleSheet) {
+          if (isCSSStyleSheet(currentStylesheet)) {
             cssStyleSheets.push(currentStylesheet);
           } else if (typeof currentStylesheet === 'string') {
             cssStrings.push(currentStylesheet);
@@ -178,7 +178,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
           for (const { currentHref, text } of cssResponses) {
             const currentCssStyleSheet = css`${text}`;
             if (adoptedStylesSupported) {
-              if (currentCssStyleSheet instanceof CSSStyleSheet) {
+              if (isCSSStyleSheet(currentCssStyleSheet)) {
                 currentCssStyleSheets.push(currentCssStyleSheet);
                 cache.stylesheets.set(currentHref, currentCssStyleSheet);
               }

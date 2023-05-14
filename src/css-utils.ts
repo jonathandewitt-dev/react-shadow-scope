@@ -7,6 +7,10 @@ export const adoptedStylesSupported: boolean = !!(
 // This should be a string if constructible stylesheets are not supported
 export type AdaptedStyleSheet = CSSStyleSheet | string;
 
+export const isCSSStyleSheet = (stylesheet?: AdaptedStyleSheet): stylesheet is CSSStyleSheet => {
+  return typeof CSSStyleSheet !== 'undefined' && stylesheet instanceof CSSStyleSheet;
+}
+
 /**
  * A tagged template function that returns the provided CSS as a constructed stylesheet, or a plain string in case of no support.
  *

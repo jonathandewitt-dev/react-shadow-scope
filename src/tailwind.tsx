@@ -1,4 +1,4 @@
-import { AdaptedStyleSheet, adoptedStylesSupported, css } from './css-utils';
+import { AdaptedStyleSheet, adoptedStylesSupported, css, isCSSStyleSheet } from './css-utils';
 import { Template } from './template';
 import * as React from 'react';
 
@@ -64,10 +64,10 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
               ${tailwindForShadowDOM}
             `;
             if (adoptedStylesSupported) {
-              if (stylesheet instanceof CSSStyleSheet) {
+              if (isCSSStyleSheet(stylesheet)) {
                 cache.stylesheets.push(stylesheet);
               }
-              if (customStyles instanceof CSSStyleSheet) {
+              if (isCSSStyleSheet(customStyles)) {
                 cache.stylesheets.push(customStyles);
               }
             }
