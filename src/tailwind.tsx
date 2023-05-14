@@ -1,5 +1,5 @@
-import { AdaptedStyleSheet, adoptedStylesSupported, css, isCSSStyleSheet } from './css-utils';
-import { Template } from './template';
+import { AdaptedStyleSheet, css } from './css-utils';
+import { Scope } from './scope';
 import * as React from 'react';
 
 export type TailwindProps = React.PropsWithChildren<{
@@ -10,6 +10,12 @@ export type TailwindProps = React.PropsWithChildren<{
    */
   href?: string;
   /**
+   * Styles that will apply only while the Tailwind stylesheet is in the process of being fetched.
+   * 
+   * @defaultValue `:host { visibility: hidden; }`
+   */
+  pendingStyles?: AdaptedStyleSheet,
+  /**
    * 
    */
   customStyles?: AdaptedStyleSheet;
@@ -18,13 +24,6 @@ export type TailwindProps = React.PropsWithChildren<{
    */
   slottedContent?: React.ReactNode,
 }>;
-
-// This object is kept in memory to prevent fetching the stylesheet(s) more than once.
-const cache: {
-  stylesheets: CSSStyleSheet[],
-} = {
-  stylesheets: [],
-};
 
 /**
  * Creates a shadow DOM encapsulated scope for Tailwind.
@@ -41,79 +40,37 @@ const cache: {
  */
 export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
   (props, forwardedRef) => {
-    const { children, href = '/tailwind.css', customStyles, slottedContent, ...forwardedProps } = props;
+    const {
+      children,
+      href = '/tailwind.css',
+      customStyles,
+      slottedContent,
+      pendingStyles = css`:host { visibility: hidden; }`,
+      ...forwardedProps
+    } = props;
 
-    const [cssStyleSheets, setCssStyleSheets] = React.useState<CSSStyleSheet[]>([]);
-    const [hrefLoaded, setHrefLoaded] = React.useState<boolean>(false);
-
-    React.useEffect(() => {
-      if (cache.stylesheets.length === 0) {
-       	fetch(href)
-          .then((response: Response) => response.text())
-          .then((tailwind: string) => {
-
-            // since html is out of scope, we have to replace it with :host...
-            const tailwindForShadowDOM = tailwind.replace(
-              /(?:^|\s)(html)(?:[^-_a-z])/gi,
-              ':host',
-            );
-            const stylesheet = css`
-              :host {
-                display: contents;
-              }
-              ${tailwindForShadowDOM}
-            `;
-            if (adoptedStylesSupported) {
-              if (isCSSStyleSheet(stylesheet)) {
-                cache.stylesheets.push(stylesheet);
-              }
-              if (isCSSStyleSheet(customStyles)) {
-                cache.stylesheets.push(customStyles);
-              }
-            }
-            setCssStyleSheets(cache.stylesheets);
-            setHrefLoaded(true);
-          });
-      } else {
-        setCssStyleSheets(cache.stylesheets);
-        setHrefLoaded(true);
-      }
-    }, []);
-
-    const styleContents = React.useMemo(
-      () => (!hrefLoaded || !adoptedStylesSupported) && typeof customStyles === 'string'
-        ? customStyles
-        : '',
-      [customStyles, hrefLoaded, adoptedStylesSupported],
-    );
+    const transformForTailwind = (cssString: string) => {
+      return cssString.replace(
+        /(?:^|\s)(html)(?:[^-_a-z])/gi,
+        ':host',
+      );
+    }
 
     return (
-      <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
-        <Template shadowrootmode="open" adoptedStyleSheets={cssStyleSheets}>
-          {!hrefLoaded
-
-            /**
-             * This fallback will be missing some global defaults due to <html> being outside the scope.
-             * @see https://github.com/tailwindlabs/tailwindcss/pull/11200
-             */
-            ? <>
-                <link rel="preload" href={href} as="style" />
-                <link rel="stylesheet" href={href} />
-              </>
-            : <></>
-          }
-          {typeof window !== 'undefined' && !hrefLoaded
-            ? <style>{`:host { visibility: hidden; }`}</style>
-            : <></>
-          }
-          {styleContents !== ''
-            ? <style>{styleContents}</style>
-            : <></>
-          }
-          {children}
-        </Template>
-        {slottedContent}
-      </react-shadow-scope>
+      <Scope
+        {...forwardedProps}
+        ref={forwardedRef}
+        stylesheet={customStyles}
+        stylesheets={[]}
+        href={href}
+        hrefs={[]}
+        pendingStyles={pendingStyles}
+        normalize={false}
+        slottedContent={slottedContent}
+        __transform={transformForTailwind}
+      >
+        {children}
+      </Scope>
     );
   },
 );
