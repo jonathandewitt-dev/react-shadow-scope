@@ -63,15 +63,22 @@ const MyComponent = () => (
 ```
 
 > NOTES:
+> - If you see the following error, you may need to use the [`'use client';` directive](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) at the top of your modules.
+>   ```
+>   Attempted import error: 'useState' is not exported from 'react' (imported as 'React')."
+>   ```
+>
 > - By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
+>
 > - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
+>
 > - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
 ---
 
 ### Normalize CSS
 
-This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opt-in by default to hopefully save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
+This package borrows from [normalize.css](https://necolas.github.io/normalize.css/8.0.1/normalize.css) to make style defaults more consistent across browsers. This feature is opted-in by default to hopefully save you some hassle, but you can opt-out any time by setting the `normalize` prop to false.
 
 ```jsx
 <Scope stylesheet={styles} normalize={false}>
@@ -87,7 +94,7 @@ For better performance, you can create a new `CSSStyleSheet` object and pass it 
 
 `react-shadow-scope` exports a tagged template function (`css`) that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
 
-> For best results, avoid creating a new `CSSStyleSheet` each render.
+> For best results, avoid running the `css` function again on each render.
 
 ```jsx
 import { css, Scope } from 'react-shadow-scope';
@@ -119,11 +126,11 @@ If you'd rather save static assets, or you depend on a third-party stylesheet, y
 <Scope href="/mystyles.css">
 ```
 
-This will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported (or it's rendering on the server), it will fall back on a `<link>` tag.
+When rendering on the server, this will simply add a `<link>` tag pointing to the given href.
 
-For the best performance, all stylesheets are cached by href, so they won't be fetched multiple times even if they were fetched by a different `<Scope>`.
+When rendering on the client, this will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported, it will fall back on the `<link>` tag. All stylesheets are cached by href, so they won't be fetched (or constructed) multiple times even if they were fetched by a different `<Scope>`.
 
-You can also fetch multiple stylesheets using the `hrefs` (plural) prop.
+You can also link multiple stylesheets using the `hrefs` (plural) prop.
 
 ```jsx
 <Scope hrefs={['/theme.css', '/mystyles.css']}>
