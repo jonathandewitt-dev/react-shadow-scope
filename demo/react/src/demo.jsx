@@ -1,6 +1,6 @@
-// passing in react-shadow-scope so it can be shared between demos
-export const Demo = ({ reactShadowScope }) => {
-  const { css, Scope, Template, Tailwind } = reactShadowScope;
+import { Scope, css, Template, Tailwind } from 'react-shadow-scope';
+
+export const Demo = () => {
   return (
     <>
       <h1>Encapsulation is cool</h1>

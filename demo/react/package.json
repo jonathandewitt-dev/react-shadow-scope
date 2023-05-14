@@ -4,7 +4,7 @@
   "scripts": {
     "start": "vite --port=5000",
     "build": "vite build",
-    "tailwind": "tailwindcss -i ./src/tailwind.css -o ./public/tailwind.css --watch"
+    "tailwind": "tailwindcss -i ./src/tailwind.css -o ./public/tailwind.css"
   },
   "dependencies": {
     "react": "^18.2.0",
