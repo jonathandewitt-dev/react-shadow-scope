@@ -201,19 +201,33 @@ export const Template = React.forwardRef<
     setInitialized(true);
   }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus]);
 
+  /**
+   * Attempt to avoid hydration issues... doesn't seem to honor the suppression, might be related to a known bug:
+   * @see https://github.com/facebook/react/issues/24270
+   */
+  const childrenWithStyle = (
+    <>
+      <style suppressHydrationWarning={true}>
+        {cssStrings.length > 0 ? cssStrings.join('\n') : ''}
+      </style>
+      {children}
+    </>
+  )
+
   // If declarative shadow DOM is not being used, just return the template
-  if (!shadowrootmode)
+  if (!shadowrootmode) {
     return (
       <template ref={templateRef} {...forwardedProps}>
-        {children}
+        {childrenWithStyle}
       </template>
     );
+  }
 
   // After everything is bootstrapped, forward all children to the shadow root
   if (initialized) {
     try {
       if (shadowRootRef.current === null) throw new Error('Shadow root cannot be null.')
-      return ReactDOM.createPortal(children, shadowRootRef.current);
+      return ReactDOM.createPortal(childrenWithStyle, shadowRootRef.current);
     } catch (error) {
       console.error(RENDER_SHADOW_ERR);
       console.groupCollapsed('Original Error...');
@@ -223,20 +237,16 @@ export const Template = React.forwardRef<
     }
   }
 
+  const dsdProps = dsdSupported ? { shadowrootmode } : {};
+
   // Initially render as usual if declarative shadow DOM is supported, otherwise fallback
-  return dsdSupported ? (
+  return (
     <template
       ref={templateRef}
-      shadowrootmode={shadowrootmode}
+      {...dsdProps}
       {...forwardedProps}
     >
-      {cssStrings.length > 0
-        ? <style>{cssStrings.join('\n')}</style>
-        : <></>
-      }
-      {children}
+      {childrenWithStyle}
     </template>
-  ) : (
-    <span ref={templateRef} {...forwardedProps}></span>
   );
 });
