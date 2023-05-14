@@ -39,12 +39,16 @@ export type ScopeProps = React.PropsWithChildren<{
    * @defaultValue `true`
    */
   normalize?: boolean,
+  /**
+   * For internal use only. This is not a stable feature and may be removed at any time.
+   */
+  __transform?: (cssString: string) => string,
 }>;
 
 type Cache = {
   base: AdaptedStyleSheet,
   normalize: AdaptedStyleSheet,
-  stylesheets: Map<string, CSSStyleSheet>,
+  stylesheets: Map<string, AdaptedStyleSheet>,
 };
 
 type CSSResponse = {
@@ -102,6 +106,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       pendingStyles = css`:host { visibility: hidden; }`,
       slottedContent,
       normalize = true,
+      __transform = s => s,
       ...forwardedProps
     } = props;
 
@@ -129,7 +134,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     // load all stylesheets
     React.useEffect(() => {
-      const _allStyleSheets: AdaptedStyleSheet[] = [...allStyleSheets];
+      const _allStyleSheets: AdaptedStyleSheet[] = [...localStyleSheets];
 
       // Request or load from cache
       const abortControllers: AbortController[] = [];
@@ -149,7 +154,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         requests.push(
           fetch(currentHref, { signal: abortController.signal })
             .then(async (response: Response) =>
-              ({ currentHref, text: await response.text() })
+              ({ currentHref, text: __transform(await response.text()) })
             ),
         );
       }
@@ -159,12 +164,8 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         Promise.all(requests).then((cssResponses) => {
           for (const { currentHref, text } of cssResponses) {
             const currentCssStyleSheet = css`${text}`;
-            if (adoptedStylesSupported) {
-              if (isCSSStyleSheet(currentCssStyleSheet)) {
-                _allStyleSheets.push(currentCssStyleSheet);
-                cache.stylesheets.set(currentHref, currentCssStyleSheet);
-              }
-            }
+            _allStyleSheets.push(currentCssStyleSheet);
+            cache.stylesheets.set(currentHref, currentCssStyleSheet);
           }
           setAllStyleSheets(_allStyleSheets);
           setHrefsLoaded(true);
