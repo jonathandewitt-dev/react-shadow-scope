@@ -1,5 +1,6 @@
 import React, { AriaAttributes, DOMAttributes } from 'react';
 import ReactDOM from 'react-dom';
+import { AdaptedStyleSheet, isCSSStyleSheet } from './css-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
 let declarativeShadowDOMSupported: boolean | null = null;
@@ -63,8 +64,10 @@ export type TemplateProps = React.PropsWithChildren<
      * A list of constructed stylesheets to adopt. (This feature is not natively available.)
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet
+     *
+     * @defaultValue `[]`
      */
-    adoptedStyleSheets?: CSSStyleSheet[];
+    adoptedStyleSheets?: AdaptedStyleSheet[];
   } & React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLTemplateElement>,
     HTMLTemplateElement
@@ -111,9 +114,29 @@ export const Template = React.forwardRef<
     children,
     delegatesFocus = false,
     shadowrootmode,
-    adoptedStyleSheets,
+    adoptedStyleSheets = [],
     ...forwardedProps
   } = props;
+
+  const { cssStyleSheets, cssStrings } = React.useMemo(
+    () => {
+      const cssStyleSheets: CSSStyleSheet[] = [];
+      const cssStrings: string[] = [];
+      for (const stylesheet of adoptedStyleSheets) {
+        if (isCSSStyleSheet(stylesheet)) {
+          cssStyleSheets.push(stylesheet);
+        } else if (typeof stylesheet === 'string') {
+          cssStrings.push(stylesheet);
+        } else {
+          console.warn(
+            'An invalid stylesheet was passed to `<Template>`, skipping...',
+          );
+        }
+      }
+      return { cssStyleSheets, cssStrings };
+    },
+    [adoptedStyleSheets],
+  );
 
   const shadowRootRef = React.useRef<ShadowRoot | null>(null);
   const templateRef = React.useRef<HTMLTemplateElement | null>(null);
@@ -129,14 +152,14 @@ export const Template = React.forwardRef<
 
   // Adopt/reset stylesheets if needed
   React.useEffect(() => {
-    if (shadowRootRef.current && adoptedStyleSheets) {
-      shadowRootRef.current.adoptedStyleSheets = adoptedStyleSheets;
+    if (shadowRootRef.current !== null) {
+      shadowRootRef.current.adoptedStyleSheets = cssStyleSheets;
     }
-  }, [shadowRootRef, initialized, adoptedStyleSheets]);
+  }, [shadowRootRef, initialized, cssStyleSheets]);
 
   // Reconcile shadow root and refs
   React.useEffect(() => {
-    if (!templateRef.current) return;
+    if (templateRef.current === null) return;
 
     const parent = templateRef.current.parentElement;
 
@@ -207,6 +230,10 @@ export const Template = React.forwardRef<
       shadowrootmode={shadowrootmode}
       {...forwardedProps}
     >
+      {cssStrings.length > 0
+        ? <style>{cssStrings.join('\n')}</style>
+        : <></>
+      }
       {children}
     </template>
   ) : (
