@@ -221,8 +221,9 @@ Tailwind support is already built-in so you don't have to roll your own solution
 > ```
 
 #### Tailwind Props
-- `href` - This is `/tailwind.css` by default. This will be fetched once and cached.
+- `href` - This is `/tailwind.css` if omitted. This will be fetched once and cached.
 - `customStyles` - Pass a string or `CSSStyleSheet` (the `css` tagged template function is recommended)
+- `pendingStyles` - Works the same as `pendingStyles` on the `<Scope>` component.
 - `slottedContent` - Works the same as `slottedContent` on the `<Scope>` component.
 
 ## Maintainers
