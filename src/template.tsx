@@ -201,13 +201,9 @@ export const Template = React.forwardRef<
     setInitialized(true);
   }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus]);
 
-  /**
-   * Attempt to avoid hydration issues... doesn't seem to honor the suppression, might be related to a known bug:
-   * @see https://github.com/facebook/react/issues/24270
-   */
   const childrenWithStyle = (
     <>
-      <style suppressHydrationWarning={true}>
+      <style>
         {cssStrings.length > 0 ? cssStrings.join('\n') : ''}
       </style>
       {children}
@@ -239,7 +235,7 @@ export const Template = React.forwardRef<
 
   const dsdProps = dsdSupported ? { shadowrootmode } : {};
 
-  // Initially render as usual if declarative shadow DOM is supported, otherwise fallback
+  // Initially render as usual until the shadowroot is initialized
   return (
     <template
       ref={templateRef}
