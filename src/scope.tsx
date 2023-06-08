@@ -1,6 +1,8 @@
 import React from 'react';
-import { AdaptedStyleSheet, adoptedStylesSupported, css, isCSSStyleSheet, normalizedScope } from './css-utils';
+import { AdaptedStyleSheet, css, normalizedScope } from './css-utils';
 import { Template } from './template';
+
+type GeneralHTMLProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
 
 export type ScopeProps = React.PropsWithChildren<{
   /**
@@ -43,7 +45,7 @@ export type ScopeProps = React.PropsWithChildren<{
    * For internal use only. This is not a stable feature and may be removed at any time.
    */
   __transform?: (cssString: string) => string,
-}>;
+} & GeneralHTMLProps>;
 
 type Cache = {
   base: AdaptedStyleSheet,
@@ -79,7 +81,7 @@ const cache: Cache = {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'react-shadow-scope': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+      'react-shadow-scope': GeneralHTMLProps;
     }
   }
 }
