@@ -10,7 +10,7 @@ Traditional global CSS risks naming collisions, specificity conflicts, and unwan
 
 This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
-> This package supports Tailwind in the shadow DOM via the [`<Tailwind>` component](#tailwind). Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
+> **Note** This package supports Tailwind in the shadow DOM via the [`<Tailwind>`](#tailwind) component. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
 
 As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the *single best tool we have*.
 
@@ -63,11 +63,13 @@ const MyComponent = () => (
 ```
 
 > **Note**
+>
 > `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
 >
 > In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
 > **Warning**
+>
 > There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may safely ignore these errors, or patch `react-dom` to ignore `<template>` elements in the reconciler.
 >
 > Open `node_modules\react-dom\cjs\react-dom.development.js`, search for `updateHostComponent`,  after `var isDirectTextChild = shouldSetTextContent(type, nextProps)` (line 19909) add:
@@ -86,6 +88,7 @@ const MyComponent = () => (
 > ([Credit](https://github.com/mayerraphael/nextjs-webcomponent-hydration#manual-declarative-shadow-dom))
 
 > **Warning**
+>
 > If you see the following error, you may need to add the [`'use client'`](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) directive at the top of your modules.
 >
 > ```
@@ -115,6 +118,7 @@ This package borrows from [normalize.css](https://necolas.github.io/normalize.cs
 All normalized styles are contained inside a `@layer` called `normalize`, which gives them the lowest priority, making them easy to override.
 
 > **Note**
+>
 > By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
 
 ---
@@ -242,6 +246,7 @@ Tailwind support is already built-in so you don't have to roll your own solution
 ```
 
 > **Note**
+>
 > Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) The expected filename is `tailwind.css` by default, but can be customized (see next section). Be sure to *remove* it from the `<link>` tag in your HTML. You may want to add this in its place:
 >
 > ```html
