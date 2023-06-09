@@ -1,7 +1,16 @@
 'use client';
 
 // import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
-import { Scope, useCSS, Template, Tailwind } from '../../../dist';
+import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement } from '../../../dist';
+
+declare global {
+  namespace ReactShadowScope {
+    interface CustomElements {
+      'my-element': CustomIntrinsicElement;
+      'card-element': CustomIntrinsicElement;
+    }
+  }
+}
 
 export default function Demo() {
   const css = useCSS();
@@ -17,7 +26,7 @@ export default function Demo() {
       </p>
 
       {/* prettier-ignore */}
-      <Scope stylesheet={css`p { color: green; font-family: sans-serif; }`}>
+      <Scope tag="my-element" stylesheet={css`p { color: green; font-family: sans-serif; }`}>
         <p>This scope solves the problem though!</p>
         <p>
           This &lt;p&gt; tag does not inherit the bold font from outside. The
