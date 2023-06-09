@@ -2,48 +2,71 @@ import React from 'react';
 import { AdaptedStyleSheet, css, normalizedScope } from './css-utils';
 import { Template } from './template';
 
-export type ScopeProps = React.PropsWithChildren<{
+export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+  class?: string,
+  for?: string,
+};
+
+// Declare the custom tag name as JSX
+declare global {
+  namespace ReactShadowScope {
+    interface CustomElements {
+      'react-shadow-scope': CustomIntrinsicElement;
+    }
+  }
+  namespace JSX {
+    interface IntrinsicElements extends ReactShadowScope.CustomElements {}
+  }
+}
+
+export type ScopeProps = React.PropsWithChildren<Partial<{
+  /**
+   * The tag name of the custom element rendered by `<Scope>`
+   *
+   * @defaultValue `'react-shadow-scope'`
+   */
+  tag: keyof ReactShadowScope.CustomElements,
   /**
    * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
    */
-  stylesheet?: AdaptedStyleSheet,
+  stylesheet: AdaptedStyleSheet,
   /**
    * Multiple stylesheets to encapsulate. Each should be created by the exported `css` tagged template function.
    *
    * @defaultValue `[]`
    */
-  stylesheets?: AdaptedStyleSheet[],
+  stylesheets: AdaptedStyleSheet[],
   /**
    * The HREF of the stylesheet to encapsulate.
    */
-  href?: string,
+  href: string,
   /**
    * Multiple HREFs of stylesheets to encapsulate.
    *
    * @defaultValue `[]`
    */
-  hrefs?: string[],
+  hrefs: string[],
   /**
    * Styles that will apply only when an external stylesheet is in the process of being fetched.
    * 
    * @defaultValue `:host { visibility: hidden; }`
    */
-  pendingStyles?: AdaptedStyleSheet,
+  pendingStyles: AdaptedStyleSheet,
   /**
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */
-  slottedContent?: React.ReactNode,
+  slottedContent: React.ReactNode,
   /**
    * Some styles are included to make default behavior consistent across different browsers. Opt-out by setting this to false.
    *
    * @defaultValue `true`
    */
-  normalize?: boolean,
+  normalize: boolean,
   /**
    * For internal use only. This is not a stable feature and may be removed at any time.
    */
-  __transform?: (cssString: string) => string,
-} & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>>;
+  __transform: (cssString: string) => string,
+}> & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>>;
 
 type Cache = {
   base: AdaptedStyleSheet,
@@ -75,18 +98,6 @@ const cache: Cache = {
   stylesheets: new Map(),
 };
 
-// Declare the custom tag name as JSX
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'react-shadow-scope': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-        class?: string,
-        for?: string,
-      };
-    }
-  }
-}
-
 /**
  * Creates a shadow DOM encapsulated scope for CSS.
  *
@@ -102,6 +113,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
   (props, forwardedRef) => {
     const {
       children,
+      tag: CustomElement = 'react-shadow-scope',
       stylesheet,
       stylesheets = [],
       href,
@@ -192,7 +204,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
     const convertedProps = className ? { class: className } : {};
 
     return (
-      <react-shadow-scope ref={forwardedRef} {...convertedProps} {...forwardedProps}>
+      <CustomElement ref={forwardedRef} {...convertedProps} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
           {!hrefsLoaded
 
@@ -211,7 +223,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
           {children}
         </Template>
         {slottedContent}
-      </react-shadow-scope>
+      </CustomElement>
     );
   },
 );

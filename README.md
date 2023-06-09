@@ -62,9 +62,32 @@ const MyComponent = () => (
 );
 ```
 
+#### Custom Tag Names
+
+By default, `<Scope>` renders a `<react-shadow-scope>` element, but doesn't define it in the custom element registry. The custom tag name just avoids cases where `<div>` or `<span>` would break HTML validation.
+
+This can be overridden via the `tag` prop, in case of conflicts or for better legibility in the dev tools.
+
+```jsx
+<Scope tag="my-element">
+```
+The above will output: `<my-element>`
+
+If you're using TypeScript, you will need to merge with the interface where these element types are declared.
+
+```ts
+import { CustomIntrinsicElement } from 'react-shadow-scope';
+
+declare global {
+  namespace ReactShadowScope {
+    interface CustomElements {
+      'my-element': CustomIntrinsicElement;
+    }
+  }
+}
+```
+
 > **Note**
->
-> `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
 >
 > In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
 
