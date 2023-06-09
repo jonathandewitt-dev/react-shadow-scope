@@ -1,3 +1,49 @@
+<style>
+  .info,
+  .warning {
+    border: 0.1rem solid;
+    border-left-width: 0.4rem;
+    border-radius: 0.2rem;
+    display: block;
+    padding: 0 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .info {
+    background-color: #012;
+    border-color: #025;
+    color: #cff;
+  }
+  .warning {
+    background-color: #310;
+    border-color: #520;
+    color: #ffa;
+  }
+  .info::before,
+  .warning::before {
+    border: 0 solid;
+    border-radius: 50%;
+    display: flex;
+    font-size: 1.5rem;
+    height: 2rem;
+    place-items: center;
+    place-content: center;
+    margin: 0.5rem 0 1rem;
+    width: 2rem;
+  }
+  .info::before {
+    background-color: #cff;
+    color: #012;
+    content: '\2139';
+  }
+  .warning::before {
+    background-color: #ffa;
+    color: #310;
+    content: '\26A0';
+  }
+  .error {
+    color: red;
+  }
+</style>
 
 # React Shadow Scope
 
@@ -63,17 +109,44 @@ const MyComponent = () => (
 );
 ```
 
-> NOTES:
-> - If you see the following error, you may need to use the [`'use client';` directive](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) at the top of your modules.
->   ```
->   Attempted import error: 'useState' is not exported from 'react' (imported as 'React')."
->   ```
->
-> - By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
->
-> - `<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
->
-> - In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
+<section class="info">
+
+`<Scope>` creates a `<react-shadow-scope>` element, but doesn't define it as a custom element. This avoids cases where `<div>` or `<span>` would break HTML validation.
+
+In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
+
+</section>
+
+<section class="warning">
+
+There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may safely ignore these errors, or patch `react-dom` to ignore `<template>` elements in the reconciler.
+
+Open `node_modules\react-dom\cjs\react-dom.development.js`, search for `updateHostComponent`,  after `var isDirectTextChild = shouldSetTextContent(type, nextProps)` (line 19909) add:
+
+```js
+if(nextChildren != null) {
+  for(var i = 0; i < nextChildren.length; i++) {
+    const child = nextChildren[i];
+    if(child.type === 'template' && 'shadowroot' in child.props) {
+      nextChildren = [...nextChildren].splice(i + 1, 1);
+    }
+  }
+}
+```
+
+([Credit](https://github.com/mayerraphael/nextjs-webcomponent-hydration#manual-declarative-shadow-dom))
+
+</section>
+
+<section class="warning">
+
+If you see the following error, you may need to add the [`'use client'`](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) directive at the top of your modules.
+
+```
+Attempted import error: 'useState' is not exported from 'react' (imported as 'React')."
+```
+
+</section>
 
 ---
 
@@ -96,6 +169,12 @@ This package borrows from [normalize.css](https://necolas.github.io/normalize.cs
 ```
 
 All normalized styles are contained inside a `@layer` called `normalize`, which gives them the lowest priority, making them easy to override.
+
+<section class="info">
+
+By default, `<Scope>` applies `display: contents;` to avoid problems with layouts. (This preserves accessibility because it lacks semantics to interfere with anyway.) You may override this with `:host { /* overrides */ }`.
+
+</section>
 
 ---
 
@@ -221,15 +300,20 @@ Tailwind support is already built-in so you don't have to roll your own solution
 </Tailwind>
 ```
 
-> Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) Be sure to *remove* it from the `<link>` tag in your HTML. You may want to add this in its place:
-> ```html
-> <style>
->   body {
->     margin: 0;
->     line-height: inherit;
->   }
-> </style>
-> ```
+<section class="info">
+
+Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) The expected filename is `tailwind.css` by default, but can be customized (see next section). Be sure to *remove* it from the `<link>` tag in your HTML. You may want to add this in its place:
+
+```html
+<style>
+  body {
+    margin: 0;
+    line-height: inherit;
+  }
+</style>
+```
+
+</section>
 
 #### Tailwind Props
 - `href` - This is `/tailwind.css` if omitted. This will be fetched once and cached.
