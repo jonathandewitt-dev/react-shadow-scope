@@ -13,6 +13,15 @@ export const isCSSStyleSheet = (stylesheet?: AdaptedStyleSheet): stylesheet is C
   return typeof CSSStyleSheet !== 'undefined' && stylesheet instanceof CSSStyleSheet;
 }
 
+const getTaggedTemplateStr = (
+  strArr: TemplateStringsArray,
+  ...interpolated: unknown[]
+) => {
+  return strArr.reduce((resultStr, currentStr, i) => {
+    return resultStr + currentStr + (interpolated[i] ?? '');
+  }, '');
+};
+
 /**
  * A tagged template function that returns the provided CSS as a constructed stylesheet, or a plain string in case of no support.
  *
@@ -29,9 +38,7 @@ export const css = (
   strArr: TemplateStringsArray,
   ...interpolated: unknown[]
 ): AdaptedStyleSheet => {
-  const styles = strArr.reduce((styles, str, i) => {
-    return styles + str + (interpolated[i] ?? '');
-  }, '');
+  const styles = getTaggedTemplateStr(strArr, interpolated);
   if (adoptedStylesSupported) {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(styles);
@@ -41,12 +48,32 @@ export const css = (
 };
 
 /**
- * Use the `css` utility as a hook for HMR support without sacrificing performance.
+ * Return the `css` utility for HMR support without sacrificing performance.
  */
-export const useCSS = () => (
-  strArr: TemplateStringsArray,
-  ...interpolated: unknown[]
-): AdaptedStyleSheet => React.useMemo(() => css(strArr, ...interpolated), [strArr, ...interpolated]);
+export const useCSS = () => {
+  const stylesheetMapRef = React.useRef(new Map<Symbol, AdaptedStyleSheet>());
+  const stylesheetMap = stylesheetMapRef.current;
+  return (
+    strArr: TemplateStringsArray,
+    ...interpolated: unknown[]
+  ): AdaptedStyleSheet => {
+    const symbolRef = React.useRef(Symbol());
+    const symbol = symbolRef.current;
+    const existingStylesheet = stylesheetMap.get(symbol);
+    if (existingStylesheet) {
+      const styles = getTaggedTemplateStr(strArr, interpolated);
+      if (existingStylesheet instanceof CSSStyleSheet) {
+        existingStylesheet.replaceSync(styles);
+        return existingStylesheet;
+      }
+      stylesheetMap.set(symbol, styles);
+      return styles;
+    }
+    const stylesheet = css(strArr, ...interpolated);
+    stylesheetMap.set(symbol, stylesheet);
+    return stylesheet;
+  };
+};
 
 /**
  * Adapted from normalize.css for use with scopes
