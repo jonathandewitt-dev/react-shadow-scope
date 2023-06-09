@@ -98,10 +98,10 @@ declare global {
 > Open `node_modules\react-dom\cjs\react-dom.development.js`, search for `updateHostComponent`,  after `var isDirectTextChild = shouldSetTextContent(type, nextProps)` (line 19909) add:
 >
 > ```js
-> if(nextChildren != null) {
->   for(var i = 0; i < nextChildren.length; i++) {
->     const child = nextChildren[i];
->     if(child.type === 'template' && 'shadowroot' in child.props) {
+> if (nextChildren !== null) {
+>   for (var i = 0; i < nextChildren.length; i++) {
+>     var child = nextChildren[i];
+>     if (child.type === 'template' && 'shadowrootmode' in child.props) {
 >       nextChildren = [...nextChildren].splice(i + 1, 1);
 >     }
 >   }
