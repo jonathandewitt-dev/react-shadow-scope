@@ -110,9 +110,8 @@ import { useCSS, Scope } from 'react-shadow-scope';
 
 const MyComponent = () => {
   const css = useCSS();
-  const styles = css`h1 { color: red }`;
   return (
-    <Scope stylesheet={styles}>
+    <Scope stylesheet={css`h1 { color: red }`}>
       <h1>title here</h1>
     </Scope>
   );
@@ -124,7 +123,7 @@ You can also import the `css` function directly, but the `useCSS` hook works wel
 ```jsx
 import { css } from 'react-shadow-scope';
 
-const styles = css`h1 { color: red }`;
+const stylesheet = css`h1 { color: red }`;
 ```
 
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
@@ -155,18 +154,12 @@ You can also link multiple stylesheets using the `hrefs` (plural) prop.
 
 When linking external stylesheets, server-rendered components will appear as expected on the first paint. Client rendered components, however, would have a FOUC issue if not for some extra care. While the styles are busy loading on the client, we apply `:host { visibility: hidden; }` by default. These styles can be customized as well, and will only apply while the fetch promise is pending.
 ```jsx
-const pendingStyles = css`
+<Scope href="/mystyles.css" pendingStyles={css`
   :host {
     display: block;
     opacity: 0.3;
   }
-`;
-
-return (
-  <Scope href="/mystyles.css" pendingStyles={pendingStyles}>
-    ...
-  </Scope>
-);
+`}>
 ```
 
 ---
@@ -194,13 +187,12 @@ import { useCSS, Template } from 'react-shadow-scope';
 
 const MyComponent = () => {
   const css = useCSS();
-  const styles = css`/* styles here */`;
   return (
     <card-element>
       {/* Note the declarative `adoptedStyleSheets` prop! */}
       <Template
         shadowrootmode="closed"
-        adoptedStyleSheets={[styles]}
+        adoptedStyleSheets={[css`/* styles here */`]}
       >
         <h1>
           <slot name="heading">(Untitled)</slot>
