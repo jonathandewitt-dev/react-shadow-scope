@@ -1,3 +1,5 @@
+import React from 'react';
+
 export const adoptedStylesSupported: boolean = !!(
   typeof window !== 'undefined' &&
   window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&
@@ -37,6 +39,14 @@ export const css = (
   }
   return styles;
 };
+
+/**
+ * Use the `css` utility as a hook for HMR support without sacrificing performance.
+ */
+export const useCSS = () => (
+  strArr: TemplateStringsArray,
+  ...interpolated: unknown[]
+): AdaptedStyleSheet => React.useMemo(() => css(strArr, ...interpolated), [strArr, ...interpolated]);
 
 /**
  * Adapted from normalize.css for use with scopes

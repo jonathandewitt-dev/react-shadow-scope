@@ -1,9 +1,10 @@
 'use client';
 
-// import { Scope, css, Template, Tailwind } from 'react-shadow-scope';
-import { Scope, css, Template, Tailwind } from '../../../dist';
+// import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
+import { Scope, useCSS, Template, Tailwind } from '../../../dist';
 
 export default function Demo() {
+  const css = useCSS();
   return (
     <div>
       <h1>Encapsulation is cool</h1>
@@ -80,12 +81,10 @@ export default function Demo() {
             </div>
           </article>
         </Template>
-        {/*
-        Everything below is technically in the light DOM, it just gets reflected
-        in the slots of the shadow DOM. Therefore, this markup is exposed to the
-        global scope.
-        @see https://stackoverflow.com/questions/61626493/slotted-css-selector-for-nested-children-in-shadowdom-slot/61631668#61631668
-        */}
+        {/**
+          * Everything below is technically in the light DOM, it just gets reflected in the slots of the shadow DOM. Therefore, this markup is exposed to the global scope.
+          * @see https://stackoverflow.com/questions/61626493/slotted-css-selector-for-nested-children-in-shadowdom-slot/61631668#61631668
+          */}
         <span slot="heading">Title Here</span>
         <p>
           This card was rendered using the traditional declarative shadow DOM

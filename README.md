@@ -103,22 +103,28 @@ All normalized styles are contained inside a `@layer` called `normalize`, which 
 
 For better performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
 
-`react-shadow-scope` exports a tagged template function (`css`) that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
-
-> For best results, avoid running the `css` function again on each render.
+`react-shadow-scope` exports a hook (`useCSS`) that returns a tagged template function that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
 
 ```jsx
-import { css, Scope } from 'react-shadow-scope';
+import { useCSS, Scope } from 'react-shadow-scope';
 
-const styles = css`h1 { color: red }`;
-
-const MyComponent = () => (
-  <>
+const MyComponent = () => {
+  const css = useCSS();
+  const styles = css`h1 { color: red }`;
+  return (
     <Scope stylesheet={styles}>
       <h1>title here</h1>
     </Scope>
-  </>
-);
+  );
+}
+```
+
+You can also import the `css` function directly, but the `useCSS` hook works well with HMR without sacrificing performance.
+
+```jsx
+import { css } from 'react-shadow-scope';
+
+const styles = css`h1 { color: red }`;
 ```
 
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
@@ -184,26 +190,28 @@ This is just an abstraction over shadow DOM, so anything you can do with shadow 
 If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>`. This adds support to React for the native `<template>` element, with some added features.
 
 ```jsx
-import { css, Template } from 'react-shadow-scope';
+import { useCSS, Template } from 'react-shadow-scope';
 
-const styles = css`/* styles here */`;
-
-const MyComponent = () => (
-  <card-element>
-    {/* Note the declarative `adoptedStyleSheets` prop! */}
-    <Template
-      shadowrootmode="closed"
-      adoptedStyleSheets={[styles]}
-    >
-      <h1>
-        <slot name="heading">(Untitled)</slot>
-      </h1>
-      <slot>(No content)</slot>
-    </Template>
-    <span slot="heading">Title Here</span>
-    <p>Inside Default Slot</p>
-  </card-element>
-);
+const MyComponent = () => {
+  const css = useCSS();
+  const styles = css`/* styles here */`;
+  return (
+    <card-element>
+      {/* Note the declarative `adoptedStyleSheets` prop! */}
+      <Template
+        shadowrootmode="closed"
+        adoptedStyleSheets={[styles]}
+      >
+        <h1>
+          <slot name="heading">(Untitled)</slot>
+        </h1>
+        <slot>(No content)</slot>
+      </Template>
+      <span slot="heading">Title Here</span>
+      <p>Inside Default Slot</p>
+    </card-element>
+  );
+}
 ```
 
 ---
