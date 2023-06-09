@@ -81,7 +81,7 @@ const MyComponent = () => (
 
 It's normally a good idea to contain the complexity of your design. In other words, instead of designing the different use cases _outside_ a component, design from the _inside_ by describing the use case, like `usedFor="page"` or `importance="urgent"`. The goal should be to eliminate the need for consumers of your component to write any CSS at all.
 
-However, sometimes it's necessary to compose styles from the parent scope. In such an event, you may add a class to the `<Scope>` component and select that to style the outer element. Because `<Scope>` technically renders a custom element, React will apply [some unique rules](https://react.dev/reference/react-dom/components#custom-html-elements), notably the usage of `class` as opposed to `className`.
+However, sometimes it's necessary to compose styles from the parent scope. In such an event, you may add a class to the `<Scope>` component and select that to style the outer element. Although React applies [some unique rules](https://react.dev/reference/react-dom/components#custom-html-elements) to custom elements, you can just use `className` as usual and we'll forward it to `class` internally.
 
 This is a gray area that has some indirect impact on the shadow DOM via the cascade. You can also selectively reach into the shadow DOM with [shadow parts](https://developer.mozilla.org/en-US/docs/Web/CSS/::part). It's important to be aware this breaks encapsulation, so it's generally not the recommended approach. Although it's _sometimes_ necessary or beneficial, it often isn't, so be careful. It may require shifting your mental model a bit at first.
 

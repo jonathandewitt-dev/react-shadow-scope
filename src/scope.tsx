@@ -2,8 +2,6 @@ import React from 'react';
 import { AdaptedStyleSheet, css, normalizedScope } from './css-utils';
 import { Template } from './template';
 
-type GeneralHTMLProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-
 export type ScopeProps = React.PropsWithChildren<{
   /**
    * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
@@ -45,7 +43,7 @@ export type ScopeProps = React.PropsWithChildren<{
    * For internal use only. This is not a stable feature and may be removed at any time.
    */
   __transform?: (cssString: string) => string,
-} & GeneralHTMLProps>;
+} & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>>;
 
 type Cache = {
   base: AdaptedStyleSheet,
@@ -81,7 +79,10 @@ const cache: Cache = {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'react-shadow-scope': GeneralHTMLProps;
+      'react-shadow-scope': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        class?: string,
+        for?: string,
+      };
     }
   }
 }
@@ -109,6 +110,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       slottedContent,
       normalize = true,
       __transform = s => s,
+      className = '',
       ...forwardedProps
     } = props;
 
@@ -188,7 +190,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
     }, [pending]);
 
     return (
-      <react-shadow-scope ref={forwardedRef} {...forwardedProps}>
+      <react-shadow-scope ref={forwardedRef} class={className} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
           {!hrefsLoaded
 
