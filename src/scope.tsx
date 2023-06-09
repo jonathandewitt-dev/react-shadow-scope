@@ -110,7 +110,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       slottedContent,
       normalize = true,
       __transform = s => s,
-      className = '',
+      className,
       ...forwardedProps
     } = props;
 
@@ -189,8 +189,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       };
     }, [pending]);
 
+    const convertedProps = className ? { class: className } : {};
+
     return (
-      <react-shadow-scope ref={forwardedRef} class={className} {...forwardedProps}>
+      <react-shadow-scope ref={forwardedRef} {...convertedProps} {...forwardedProps}>
         <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
           {!hrefsLoaded
 
