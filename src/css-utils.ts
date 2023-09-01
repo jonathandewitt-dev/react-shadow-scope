@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const adoptedStylesSupported: boolean = !!(
   typeof window !== 'undefined' &&
   window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&

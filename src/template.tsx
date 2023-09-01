@@ -78,8 +78,6 @@ const ATTACH_SHADOW_ERR = `Could not attach the shadow root. The element may alr
 
 If the issue persists, other code may be conflicting by attaching a shadow root before this \`<Template>\` instance does.`;
 
-const NO_PARENT_ERR = `Could not attach shadow root because there is no valid parent to attach to.`;
-
 const RENDER_SHADOW_ERR = `Could not render the contents in the shadow root. This could be due to HMR and a failure to reattach a closed shadow root. Refresh the page to initialize a new shadow root.
 
 If you are experiencing this issue at runtime and not during development, you may be directly re-mounting the \`<Template>\` component. This should be avoided in favor of re-mounting its parent.`;
@@ -164,7 +162,8 @@ export const Template = React.forwardRef<
     const parent = templateRef.current.parentElement;
 
     if (!parent) {
-      console.error(NO_PARENT_ERR);
+
+      // If there is no parent, it's likely because it was already parsed as DSD.
       return;
     }
 
