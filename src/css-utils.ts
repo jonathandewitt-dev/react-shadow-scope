@@ -48,17 +48,20 @@ export const css = (
 };
 
 /**
+ * Using this map as a persisted reference so stylesheets can be shared
+ * between all instances of a component using the `useCSS` hook.
+ */
+const stylesheetMap = new Map<Symbol, AdaptedStyleSheet>();
+
+/**
  * Return the `css` utility for HMR support without sacrificing performance.
  */
-export const useCSS = () => {
-  const stylesheetMapRef = React.useRef(new Map<Symbol, AdaptedStyleSheet>());
-  const stylesheetMap = stylesheetMapRef.current;
+export const useCSS = (key?: Symbol) => {
   return (
     strArr: TemplateStringsArray,
     ...interpolated: unknown[]
   ): AdaptedStyleSheet => {
-    const symbolRef = React.useRef(Symbol());
-    const symbol = symbolRef.current;
+    const symbol = key ?? Symbol();
     const existingStylesheet = stylesheetMap.get(symbol);
     if (existingStylesheet) {
       const styles = getTaggedTemplateStr(strArr, ...interpolated);
