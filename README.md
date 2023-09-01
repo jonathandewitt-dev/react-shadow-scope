@@ -148,7 +148,7 @@ All normalized styles are contained inside a `@layer` called `normalize`, which 
 
 ### Constructed Style Sheets
 
-For better performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
+For best performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
 
 `react-shadow-scope` exports a hook (`useCSS`) that returns a tagged template function that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
 
@@ -164,6 +164,31 @@ const MyComponent = () => {
   );
 }
 ```
+
+To ensure that only one stylesheet gets constructed even when you use a component multiple times, you can create a `Symbol` outside the component function, then pass it to the `useCSS` hook. This will uniquely identify a single reference for each instance of the component.
+
+```jsx
+const key = Symbol();
+
+const MyComponent = () => {
+  const css = useCSS(key);
+  ...
+}
+```
+
+> **Note**
+>
+> When using a key, you may not use the resulting `css` function multiple times, because the same reference is shared between each function call. This means the last result will override all previous results. If you need multiple stylesheets, consider calling `useCSS` multiple times with different keys.
+> ```jsx
+> const key1 = Symbol();
+> const key2 = Symbol();
+> 
+> const MyComponent = () => {
+>   const css1 = useCSS(key1);
+>   const css2 = useCSS(key2);
+>   ...
+> }
+> ```
 
 You can also import the `css` function directly, but the `useCSS` hook works well with HMR without sacrificing performance.
 
