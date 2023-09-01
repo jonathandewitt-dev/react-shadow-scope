@@ -95,20 +95,16 @@ declare global {
 >
 > There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may safely ignore these errors, or patch `react-dom` to ignore `<template>` elements in the reconciler.
 >
-> Open `node_modules\react-dom\cjs\react-dom.development.js`, search for `updateHostComponent`,  after `var isDirectTextChild = shouldSetTextContent(type, nextProps)` (line 19909) add:
+> If you are using [Next](https://nextjs.org), open `node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js` and search for `function beginWork$1`. Just before `switch (workInProgress.tag)`, add the following:
 >
 > ```js
-> if (nextChildren !== null) {
->   for (var i = 0; i < nextChildren.length; i++) {
->     var child = nextChildren[i];
->     if (child.type === 'template' && 'shadowrootmode' in child.props) {
->       nextChildren = [...nextChildren].splice(i + 1, 1);
->     }
->   }
-> }
-> ```
+> var isDSD = workInProgress.type === 'template' && (
+>   workInProgress.pendingProps.shadowrootmode === 'open'
+>   || workInProgress.pendingProps.shadowrootmode === 'closed'
+> );
 >
-> ([Credit](https://github.com/mayerraphael/nextjs-webcomponent-hydration#manual-declarative-shadow-dom))
+> if (isDSD) return null;
+> ```
 
 > **Warning**
 >
