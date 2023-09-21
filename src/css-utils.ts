@@ -63,7 +63,7 @@ export const useCSS = (key?: Symbol) => {
     const existingStylesheet = stylesheetMap.get(symbol);
     if (existingStylesheet) {
       const styles = getTaggedTemplateStr(strArr, ...interpolated);
-      if (existingStylesheet instanceof CSSStyleSheet) {
+      if (isCSSStyleSheet(existingStylesheet)) {
         existingStylesheet.replace(styles);
         return existingStylesheet;
       }
