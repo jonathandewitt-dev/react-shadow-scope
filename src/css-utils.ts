@@ -1,8 +1,7 @@
-export const adoptedStylesSupported: boolean = !!(
+export const adoptedStylesSupported: boolean =
   typeof window !== 'undefined' &&
   window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&
-  window.CSSStyleSheet?.prototype.hasOwnProperty('replace')
-);
+  window.CSSStyleSheet?.prototype.hasOwnProperty('replace');
 
 // This should be a string if constructible stylesheets are not supported
 export type AdaptedStyleSheet = CSSStyleSheet | string;

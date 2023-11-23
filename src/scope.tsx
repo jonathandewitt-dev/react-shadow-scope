@@ -1,6 +1,7 @@
 import React from 'react';
 import { AdaptedStyleSheet, css, normalizedScope } from './css-utils';
 import { Template } from './template';
+import { ShadowScopeConfig } from './context';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
   class?: string,
@@ -25,43 +26,47 @@ export type ScopeProps = React.PropsWithChildren<Partial<{
    *
    * @defaultValue `'react-shadow-scope'`
    */
-  tag: keyof ReactShadowScope.CustomElements,
+  tag: keyof ReactShadowScope.CustomElements;
   /**
    * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
    */
-  stylesheet: AdaptedStyleSheet,
+  stylesheet: AdaptedStyleSheet;
   /**
    * Multiple stylesheets to encapsulate. Each should be created by the exported `css` tagged template function.
    *
    * @defaultValue `[]`
    */
-  stylesheets: AdaptedStyleSheet[],
+  stylesheets: AdaptedStyleSheet[];
   /**
    * The HREF of the stylesheet to encapsulate.
    */
-  href: string,
+  href: string;
   /**
    * Multiple HREFs of stylesheets to encapsulate.
    *
    * @defaultValue `[]`
    */
-  hrefs: string[],
+  hrefs: string[];
   /**
    * Styles that will apply only when an external stylesheet is in the process of being fetched.
    * 
    * @defaultValue `:host { visibility: hidden; }`
    */
-  pendingStyles: AdaptedStyleSheet,
+  pendingStyles: AdaptedStyleSheet;
   /**
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */
-  slottedContent: React.ReactNode,
+  slottedContent: React.ReactNode;
   /**
    * Some styles are included to make default behavior consistent across different browsers. Opt-out by setting this to false.
    *
    * @defaultValue `true`
    */
-  normalize: boolean,
+  normalize: boolean;
+  /**
+   * Configure this instance of `<Scope>`. (Overrides `ShadowScopeConfigProvider`)
+   */
+  config?: ShadowScopeConfig;
   /**
    * For internal use only. This is not a stable feature and may be removed at any time.
    */
@@ -121,6 +126,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       pendingStyles = css`:host { visibility: hidden; }`,
       slottedContent,
       normalize = true,
+      config,
       __transform = s => s,
       className,
       ...forwardedProps
@@ -205,7 +211,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     return (
       <CustomElement ref={forwardedRef} {...convertedProps} {...forwardedProps}>
-        <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
+        <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets} config={config}>
           {!hrefsLoaded
 
             /**

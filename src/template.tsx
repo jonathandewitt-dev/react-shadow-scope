@@ -1,6 +1,7 @@
 import React, { AriaAttributes, DOMAttributes } from 'react';
 import ReactDOM from 'react-dom';
 import { AdaptedStyleSheet, isCSSStyleSheet } from './css-utils';
+import { ShadowScopeConfig, ShadowScopeContext } from './context';
 
 // caching the result out here avoids parsing a fragment for each component instance
 let declarativeShadowDOMSupported: boolean | null = null;
@@ -13,10 +14,10 @@ function checkDSDSupport(): boolean {
 
   // Parse a DSD fragment to check
   const fragment = new DOMParser().parseFromString(
-    `<div><template shadowrootmode="open"></template></div>`,
+    '<div><template shadowrootmode="open"></template></div>',
     'text/html',
 
-    // @ts-ignore-next-line; TS doesn't know the `parseFromString` supports a 3rd argument.
+    // @ts-ignore-next-line; TS doesn't know `parseFromString` supports a 3rd argument.
     { includeShadowRoots: true },
   );
   declarativeShadowDOMSupported = !!fragment.querySelector('div')?.shadowRoot;
@@ -68,6 +69,10 @@ export type TemplateProps = React.PropsWithChildren<
      * @defaultValue `[]`
      */
     adoptedStyleSheets?: AdaptedStyleSheet[];
+    /**
+     * Configure this instance of `<Template>`. (Overrides `ShadowScopeConfigProvider`)
+     */
+    config?: ShadowScopeConfig;
   } & React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLTemplateElement>,
     HTMLTemplateElement
@@ -113,8 +118,13 @@ export const Template = React.forwardRef<
     delegatesFocus = false,
     shadowrootmode,
     adoptedStyleSheets = [],
+    config,
     ...forwardedProps
   } = props;
+
+  const shadowScopeContext = React.useContext(ShadowScopeContext);
+
+  const dsd = config?.dsd ?? shadowScopeContext.dsd;
 
   const { cssStyleSheets, cssStrings } = React.useMemo(
     () => {
@@ -143,9 +153,11 @@ export const Template = React.forwardRef<
     mode: shadowrootmode ?? 'open',
   });
   const [initialized, setInitialized] = React.useState(false);
+  const [afterClientRender, setAfterClientRender] = React.useState(false);
+  React.useEffect(() => { setAfterClientRender(true); }, []);
   const dsdSupported = React.useMemo(
-    () => checkDSDSupport(),
-    [declarativeShadowDOMSupported],
+    () => checkDSDSupport() && dsd === 'on',
+    [declarativeShadowDOMSupported, dsd],
   );
 
   // Adopt/reset stylesheets if needed
@@ -157,7 +169,7 @@ export const Template = React.forwardRef<
 
   // Reconcile shadow root and refs
   React.useEffect(() => {
-    if (templateRef.current === null) return;
+    if (templateRef.current === null || !afterClientRender) return;
 
     const parent = templateRef.current.parentElement;
 
@@ -198,13 +210,13 @@ export const Template = React.forwardRef<
       }
     }
     setInitialized(true);
-  }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus]);
+  }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus, afterClientRender]);
 
   const childrenWithStyle = (
     <>
-      <style>
-        {cssStrings.length > 0 ? cssStrings.join('\n') : ''}
-      </style>
+      <style dangerouslySetInnerHTML={{
+        __html: cssStrings.length > 0 ? cssStrings.join('\n') : ''
+      }} />
       {children}
     </>
   )
@@ -236,12 +248,40 @@ export const Template = React.forwardRef<
 
   // Initially render as usual until the shadowroot is initialized
   return (
-    <template
-      ref={templateRef}
-      {...dsdProps}
-      {...forwardedProps}
-    >
-      {childrenWithStyle}
-    </template>
+    <>
+      {afterClientRender || dsd === 'on'
+        ? <template
+            ref={templateRef}
+            {...dsdProps}
+            {...forwardedProps}
+          >
+            {childrenWithStyle}
+          </template>
+        : <></>
+      }
+      {dsd === 'simulated'
+        ? <react-shadow-scope>
+            <style dangerouslySetInnerHTML={{
+              __html: `
+                react-shadow-scope {
+                  visibility: hidden;
+                  display: contents;
+                }
+              `,
+            }} />
+            <noscript>
+              <style dangerouslySetInnerHTML={{
+                __html: `
+                  react-shadow-scope {
+                    visibility: visible;
+                  }
+                `,
+              }} />
+            </noscript>
+            {children}
+          </react-shadow-scope>
+        : <></>
+      }
+    </>
   );
 });
