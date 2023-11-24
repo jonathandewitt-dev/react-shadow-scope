@@ -93,18 +93,7 @@ declare global {
 
 > **Warning**
 >
-> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may safely ignore these errors, or patch `react-dom` to ignore `<template>` elements in the reconciler.
->
-> If you are using [Next](https://nextjs.org), open `node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js` and search for `function beginWork$1`. Just before `switch (workInProgress.tag)`, add the following:
->
-> ```js
-> var isDSD = workInProgress.type === 'template' && (
->   workInProgress.pendingProps.shadowrootmode === 'open'
->   || workInProgress.pendingProps.shadowrootmode === 'closed'
-> );
->
-> if (isDSD) return null;
-> ```
+> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may set declarative shadow DOM to `simulated` or `off` by passing the `config` prop to either `<Scope>` or the exported `<ShadowScopeConfigProvider>` as `config={{ dsd: 'simulated' }}`. Passing `off` will disable server-side rendering altogether, while `simulated` will render html outside of the `<template>` tags on the server.
 
 > **Warning**
 >
