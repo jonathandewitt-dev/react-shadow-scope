@@ -1,6 +1,6 @@
 import React, { AriaAttributes, DOMAttributes } from 'react';
 import ReactDOM from 'react-dom';
-import { AdaptedStyleSheet, isCSSStyleSheet } from './css-utils';
+import { StyleSheet, isCSSStyleSheet } from './css-utils';
 import { ShadowScopeConfig, ShadowScopeContext } from './context';
 
 // caching the result out here avoids parsing a fragment for each component instance
@@ -68,7 +68,7 @@ export type TemplateProps = React.PropsWithChildren<
      *
      * @defaultValue `[]`
      */
-    adoptedStyleSheets?: AdaptedStyleSheet[];
+    adoptedStyleSheets?: StyleSheet[];
     /**
      * Configure this instance of `<Template>`. (Overrides `ShadowScopeConfigProvider`)
      */

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AdaptedStyleSheet, css, normalizedScope } from './css-utils';
+import { StyleSheet, css, normalizedScope } from './css-utils';
 import { Template } from './template';
 import { ShadowScopeConfig } from './context';
 
@@ -30,13 +30,13 @@ export type ScopeProps = React.PropsWithChildren<Partial<{
   /**
    * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
    */
-  stylesheet: AdaptedStyleSheet;
+  stylesheet: StyleSheet;
   /**
    * Multiple stylesheets to encapsulate. Each should be created by the exported `css` tagged template function.
    *
    * @defaultValue `[]`
    */
-  stylesheets: AdaptedStyleSheet[];
+  stylesheets: StyleSheet[];
   /**
    * The HREF of the stylesheet to encapsulate.
    */
@@ -52,7 +52,7 @@ export type ScopeProps = React.PropsWithChildren<Partial<{
    * 
    * @defaultValue `:host { visibility: hidden; }`
    */
-  pendingStyles: AdaptedStyleSheet;
+  pendingStyles: StyleSheet;
   /**
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */
@@ -74,9 +74,9 @@ export type ScopeProps = React.PropsWithChildren<Partial<{
 }> & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>>;
 
 type Cache = {
-  base: AdaptedStyleSheet,
-  normalize: AdaptedStyleSheet,
-  stylesheets: Map<string, AdaptedStyleSheet>,
+  base: StyleSheet,
+  normalize: StyleSheet,
+  stylesheets: Map<string, StyleSheet>,
 };
 
 type CSSResponse = {
@@ -152,11 +152,11 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       },
       [pending, stylesheet, stylesheets],
     );
-    const [allStyleSheets, setAllStyleSheets] = React.useState<AdaptedStyleSheet[]>(localStyleSheets);
+    const [allStyleSheets, setAllStyleSheets] = React.useState<StyleSheet[]>(localStyleSheets);
 
     // load all stylesheets
     React.useEffect(() => {
-      const _allStyleSheets: AdaptedStyleSheet[] = [...localStyleSheets];
+      const _allStyleSheets: StyleSheet[] = [...localStyleSheets];
 
       // Request or load from cache
       const abortControllers: AbortController[] = [];

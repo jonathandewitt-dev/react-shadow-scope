@@ -1,4 +1,4 @@
-import { AdaptedStyleSheet, css } from './css-utils';
+import { StyleSheet, css } from './css-utils';
 import { Scope } from './scope';
 import * as React from 'react';
 
@@ -14,11 +14,11 @@ export type TailwindProps = React.PropsWithChildren<{
    * 
    * @defaultValue `:host { visibility: hidden; }`
    */
-  pendingStyles?: AdaptedStyleSheet,
+  pendingStyles?: StyleSheet,
   /**
    * 
    */
-  customStyles?: AdaptedStyleSheet;
+  customStyles?: StyleSheet;
   /**
    * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
    */

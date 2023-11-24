@@ -4,9 +4,9 @@ export const adoptedStylesSupported: boolean =
   window.CSSStyleSheet?.prototype.hasOwnProperty('replace');
 
 // This should be a string if constructible stylesheets are not supported
-export type AdaptedStyleSheet = CSSStyleSheet | string;
+export type StyleSheet = CSSStyleSheet | string;
 
-export const isCSSStyleSheet = (stylesheet?: AdaptedStyleSheet): stylesheet is CSSStyleSheet => {
+export const isCSSStyleSheet = (stylesheet?: StyleSheet): stylesheet is CSSStyleSheet => {
   return typeof CSSStyleSheet !== 'undefined' && stylesheet instanceof CSSStyleSheet;
 }
 
@@ -34,7 +34,7 @@ const getTaggedTemplateStr = (
 export const css = (
   strArr: TemplateStringsArray,
   ...interpolated: unknown[]
-): AdaptedStyleSheet => {
+): StyleSheet => {
   const styles = getTaggedTemplateStr(strArr, ...interpolated);
   if (adoptedStylesSupported) {
     const sheet = new CSSStyleSheet();
@@ -48,7 +48,7 @@ export const css = (
  * Using this map as a persisted reference so stylesheets can be shared
  * between all instances of a component using the `useCSS` hook.
  */
-const stylesheetMap = new Map<Symbol, AdaptedStyleSheet>();
+const stylesheetMap = new Map<Symbol, StyleSheet>();
 
 /**
  * Return the `css` utility for HMR support without sacrificing performance.
@@ -57,7 +57,7 @@ export const useCSS = (key?: Symbol) => {
   return (
     strArr: TemplateStringsArray,
     ...interpolated: unknown[]
-  ): AdaptedStyleSheet => {
+  ): StyleSheet => {
     const symbol = key ?? Symbol();
     const existingStylesheet = stylesheetMap.get(symbol);
     if (existingStylesheet) {
