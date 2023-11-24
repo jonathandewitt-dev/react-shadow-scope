@@ -93,7 +93,17 @@ declare global {
 
 > **Warning**
 >
-> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors. Until the React team addresses this, you may set declarative shadow DOM to `simulated` or `off` by passing the `config` prop to either `<Scope>` or the exported `<ShadowScopeConfigProvider>` as `config={{ dsd: 'simulated' }}`. Passing `off` will disable server-side rendering altogether, while `simulated` will render html outside of the `<template>` tags on the server.
+> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `simulated` or `off` by passing the `config` prop.
+>
+> You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
+> ```tsx
+> <ShadowScopeConfigProvider config={{ dsd: 'simulated' }}>
+> ```
+> ...OR you can pass it directly to each `<Scope>` or `<Template>`. Each instance will override the provider's config.
+> ```tsx
+> <Scope config={{ dsd: 'simulated' }}>
+> ```
+> Setting `dsd` to `off` will disable server-side rendering altogether, while `simulated` will initially render (hidden) html outside of the `<template>` tags on the server.
 
 > **Warning**
 >
