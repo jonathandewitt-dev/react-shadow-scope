@@ -62,6 +62,29 @@ const MyComponent = () => (
 );
 ```
 
+> **Warning**
+>
+> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `emulated` or `off` by passing the `config` prop.
+>
+> You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
+> ```tsx
+> <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
+> ```
+> ...OR you can pass it directly to each `<Scope>`, `<CustomElement>`, or `<Tailwind>`. Each instance will override the provider's config.
+> ```tsx
+> <Scope config={{ dsd: 'emulated' }}>
+> ```
+> Setting `dsd` to `emulated` will initially render (hidden) HTML by parsing slots in the light DOM, then enhance with the shadow DOM after hydration completes.
+> Setting `dsd` to `off` will disable server-side rendering altogether.
+
+> **Warning**
+>
+> If you see the following error, you may need to add the [`'use client'`](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) directive at the top of your modules.
+>
+> ```
+> Attempted import error: 'useState' is not exported from 'react' (imported as 'React')."
+> ```
+
 #### Custom Tag Names
 
 By default, `<Scope>` renders a `<react-shadow-scope>` element, but doesn't define it in the custom element registry. The custom tag name just avoids cases where `<div>` or `<span>` would break HTML validation.
@@ -90,28 +113,6 @@ declare global {
 > **Note**
 >
 > In some cases, HTML requires certain nesting rules to be valid. For example, `<ul>` may only contain `<li>` tags as direct children. To work around this, you can either render all `<li>` tags in one parent `<Scope>`, or apply your own semantics with `role="list"` and `role="listitem"` to your markup instead of using `<ul>` and `<li>`.
-
-> **Warning**
->
-> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `emulated` or `off` by passing the `config` prop.
->
-> You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
-> ```tsx
-> <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
-> ```
-> ...OR you can pass it directly to each `<Scope>`, `<CustomElement>`, or `<Tailwind>`. Each instance will override the provider's config.
-> ```tsx
-> <Scope config={{ dsd: 'emulated' }}>
-> ```
-> Setting `dsd` to `off` will disable server-side rendering altogether, while `emulated` will initially render (hidden) html in the light DOM, then enhance with the shadow DOM after hydration completes.
-
-> **Warning**
->
-> If you see the following error, you may need to add the [`'use client'`](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components) directive at the top of your modules.
->
-> ```
-> Attempted import error: 'useState' is not exported from 'react' (imported as 'React')."
-> ```
 
 ---
 
