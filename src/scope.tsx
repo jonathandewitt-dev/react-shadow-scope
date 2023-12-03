@@ -214,10 +214,11 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         // @ts-ignore // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
         ref={forwardedRef}
         tag={tag}
+        config={config}
         {...convertedProps}
         {...forwardedProps}
       >
-        <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets} config={config}>
+        <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
           {!hrefsLoaded
 
             /**

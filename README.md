@@ -99,11 +99,11 @@ declare global {
 > ```tsx
 > <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
 > ```
-> ...OR you can pass it directly to each `<Scope>` or `<Template>`. Each instance will override the provider's config.
+> ...OR you can pass it directly to each `<Scope>`, `<CustomElement>`, or `<Tailwind>`. Each instance will override the provider's config.
 > ```tsx
 > <Scope config={{ dsd: 'emulated' }}>
 > ```
-> Setting `dsd` to `off` will disable server-side rendering altogether, while `emulated` will initially render (hidden) html outside of the `<template>` tags on the server.
+> Setting `dsd` to `off` will disable server-side rendering altogether, while `emulated` will initially render (hidden) html in the light DOM, then enhance with the shadow DOM after hydration completes.
 
 > **Warning**
 >
@@ -241,7 +241,9 @@ Most of the time, you won't want the children to be rendered in the same CSS sco
 </Scope>
 ```
 
-This is just an abstraction over shadow DOM, so anything you can do with shadow DOM, you can do with `slottedContent`. This includes named slots and so on. But at that point, you may be entering territory where it becomes more practical to just use the bare syntax of declarative shadow DOM... which you can also do with this package!
+This is just an abstraction over shadow DOM, so anything you can do with shadow DOM, you can do with `slottedContent`, including named slots and so on.
+
+But at the point you're taking full advantage these additional features, you may be entering territory where it becomes more practical to just use the bare syntax of declarative shadow DOM... which you can also do with this package!
 
 ---
 
@@ -277,7 +279,7 @@ const MyComponent = () => {
 
 ### Tailwind
 
-Tailwind support is already built-in so you don't have to roll your own solution. Just make sure the Tailwind package is installed and set up as usual, and this package will encapsulate it in the shadow DOM.
+Tailwind support is already built-in so you don't have to roll your own solution. Just install and set up the Tailwind package as usual, and this package will encapsulate it in the shadow DOM.
 
 ```jsx
 <Tailwind slottedContent={children}>
@@ -290,7 +292,9 @@ Tailwind support is already built-in so you don't have to roll your own solution
 
 > **Note**
 >
-> Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) The expected filename is `tailwind.css` by default, but can be customized (see next section). Be sure to *remove* it from the `<link>` tag in your HTML. You may want to add this in its place:
+> Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) The expected filename is `tailwind.css` by default, but can be customized (see next section).
+>
+> Be sure to *remove* tailwind from the `<link>` tag in your HTML. You may want to add this in its place:
 >
 > ```html
 > <style>

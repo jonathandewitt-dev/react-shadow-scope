@@ -70,10 +70,6 @@ export type TemplateProps = React.PropsWithChildren<
      * @defaultValue `[]`
      */
     adoptedStyleSheets?: StyleSheet[];
-    /**
-     * Configure this instance of `<Template>`. (Overrides `ShadowScopeConfigProvider`)
-     */
-    config?: ShadowScopeConfig;
   } & React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLTemplateElement>,
     HTMLTemplateElement
@@ -96,7 +92,7 @@ const getMismatchErr = (type: 'mode' | 'delegatesFocus') =>
  *
  * @example
  * ```tsx
- * <custom-element>
+ * <CustomElement tag="my-element">
  *   <Template shadowrootmode="closed">
  *     <header>
  *       <slot name="header"></slot>
@@ -107,7 +103,7 @@ const getMismatchErr = (type: 'mode' | 'delegatesFocus') =>
  *   </Template>
  *   <h1 slot="header">Hello World!</h1>
  *   <p>This will be output in the default slot</p>
- * </custom-element>
+ * </CustomElement>
  * ```
  */
 export const Template = React.forwardRef<
@@ -119,13 +115,10 @@ export const Template = React.forwardRef<
     delegatesFocus = false,
     shadowrootmode,
     adoptedStyleSheets = [],
-    config,
     ...forwardedProps
   } = props;
 
   const shadowScopeContext = React.useContext(ShadowScopeContext);
-
-  const dsd = config?.dsd ?? shadowScopeContext.dsd;
 
   const { cssStyleSheets, cssStrings } = React.useMemo(
     () => {
@@ -155,8 +148,8 @@ export const Template = React.forwardRef<
   });
   const [initialized, setInitialized] = React.useState(false);
   const dsdSupported = React.useMemo(
-    () => checkDSDSupport() && dsd === 'on',
-    [declarativeShadowDOMSupported, dsd],
+    () => checkDSDSupport() && shadowScopeContext.dsd === 'on',
+    [declarativeShadowDOMSupported, shadowScopeContext.dsd],
   );
 
   // Adopt/reset stylesheets if needed
@@ -257,62 +250,94 @@ export const Template = React.forwardRef<
   );
 });
 
+/**
+ * Emulate declarative shadow DOM by filling in the slots and returning light DOM.
+ *
+ * This is defined outside of CustomElement to avoid unnecessary overhead when not needed.
+ * It's not in `children-utils.tsx` to avoid the circular dependency from `Template`.
+ */
+const emulateDSD = (children: React.ReactNode) => {
+  const childrenArray = React.Children.toArray(children);
+
+  const template = (childrenArray.find((child) => {
+    return React.isValidElement(child) && child.type === Template;
+  }) ?? <></>) as React.ReactElement;
+
+  const lightDomChildren = childrenArray.filter((child) => {
+    return !React.isValidElement(child) || child.type !== Template;
+  });
+
+  return parseSlots(lightDomChildren, template);
+};
+
 type CustomElementProps = React.PropsWithChildren<
   {
     /**
      * The tag name of the custom element.
      */
     tag: keyof ReactShadowScope.CustomElements;
+    /**
+     * Configure this instance of `<CustomElement>`. (Overrides `ShadowScopeConfigProvider`)
+     */
+    config?: ShadowScopeConfig;
   } & React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLElement>,
     HTMLElement
   >
 >;
 
+/**
+ * Supports declarative shadow DOM with a ponyfill.
+ *
+ * @example
+ * ```tsx
+ * <CustomElement tag="my-element">
+ *   <Template shadowrootmode="closed">
+ *     <header>
+ *       <slot name="header"></slot>
+ *     </header>
+ *     <div>
+ *       <slot></slot>
+ *     </div>
+ *   </Template>
+ *   <h1 slot="header">Hello World!</h1>
+ *   <p>This will be output in the default slot</p>
+ * </CustomElement>
+ * ```
+ */
 export const CustomElement = React.forwardRef<
   HTMLElement,
   CustomElementProps
 >((props, forwardedRef) => {
-  const { tag: Tag, children, ...forwardedProps } = props;
+  const {
+    tag: Tag,
+    children,
+    config,
+    ...forwardedProps
+  } = props;
+
   const shadowScopeContext = React.useContext(ShadowScopeContext);
-
-  const childrenArray = React.Children.toArray(children);
-  const template = childrenArray.find((child) => {
-    return React.isValidElement(child) && child.type === Template;
-  }) as React.ReactElement | undefined;
-
-  const lightDomChildren = childrenArray.filter((child) => {
-    return !React.isValidElement(child) || child.type !== Template;
-  });
+  const dsd = config?.dsd ?? shadowScopeContext.dsd;
 
   const [hasHydrated, setHasHydrated] = React.useState(false);
   React.useEffect(() => { setHasHydrated(true); }, []);
 
-  const templateContent = typeof template === 'undefined'
-    ? <></>
-    : hasHydrated
-      ? children
-      : <>{parseSlots(lightDomChildren, template)}</>;
-
   return (
-    <>
-      {hasHydrated
-        ? <></>
-        : (
-            <>
-              <style>{`${Tag} { visibility: hidden; }`}</style>
-              <noscript>
-                <style>{`${Tag} { visibility: visible; }`}</style>
-              </noscript>
-            </>
-          )
+    <Tag {...forwardedProps} ref={forwardedRef}>
+      {dsd === 'emulated'
+        ? hasHydrated
+            ? children
+            : (
+                <>
+                  <style>{`${Tag} { visibility: hidden; }`}</style>
+                  <noscript>
+                    <style>{`${Tag} { visibility: visible; }`}</style>
+                  </noscript>
+                  {emulateDSD(children)}
+                </>
+              )
+        : children
       }
-      <Tag {...forwardedProps} ref={forwardedRef}>
-        {shadowScopeContext.dsd === 'emulated'
-          ? templateContent
-          : children
-        }
-      </Tag>
-    </>
+    </Tag>
   );
 });
