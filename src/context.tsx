@@ -1,4 +1,5 @@
-import React from 'react'
+'use client';
+import React from 'react';
 
 export type ShadowScopeConfig = {
 	dsd: 'on' | 'off' | 'emulated';
