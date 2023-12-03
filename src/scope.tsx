@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { StyleSheet, css, normalizedScope } from './css-utils';
 import { CustomElement, Template } from './template';

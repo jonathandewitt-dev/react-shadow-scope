@@ -1,3 +1,4 @@
+'use client';
 import { ShadowScopeConfig } from './context';
 import { StyleSheet, css } from './css-utils';
 import { Scope } from './scope';
