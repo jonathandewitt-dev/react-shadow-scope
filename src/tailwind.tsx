@@ -4,6 +4,12 @@ import * as React from 'react';
 
 export type TailwindProps = React.PropsWithChildren<{
   /**
+   * The tag name of the custom element rendered by `<Tailwind>`
+   *
+   * @defaultValue `'react-shadow-scope'`
+   */
+  tag?: keyof ReactShadowScope.CustomElements;
+  /**
    * The relative path of the Tailwind stylesheet when serving the application.
    *
    * @defaultValue `'/tailwind.css'`
@@ -42,6 +48,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
   (props, forwardedRef) => {
     const {
       children,
+      tag = 'react-shadow-scope',
       href = '/tailwind.css',
       customStyles,
       slottedContent,
@@ -60,6 +67,7 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>(
       <Scope
         {...forwardedProps}
         ref={forwardedRef}
+        tag={tag}
         stylesheet={customStyles}
         stylesheets={[]}
         href={href}

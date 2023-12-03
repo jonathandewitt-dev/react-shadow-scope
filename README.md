@@ -277,7 +277,7 @@ const MyComponent = () => {
 
 ### Tailwind
 
-Tailwind support is already built-in so you don't have to roll your own solution.
+Tailwind support is already built-in so you don't have to roll your own solution. Just make sure the Tailwind package is installed and set up as usual, and this package will encapsulate it in the shadow DOM.
 
 ```jsx
 <Tailwind slottedContent={children}>
