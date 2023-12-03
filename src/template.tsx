@@ -154,8 +154,6 @@ export const Template = React.forwardRef<
     mode: shadowrootmode ?? 'open',
   });
   const [initialized, setInitialized] = React.useState(false);
-  const [afterClientRender, setAfterClientRender] = React.useState(false);
-  React.useEffect(() => { setAfterClientRender(true); }, []);
   const dsdSupported = React.useMemo(
     () => checkDSDSupport() && dsd === 'on',
     [declarativeShadowDOMSupported, dsd],
@@ -170,7 +168,7 @@ export const Template = React.forwardRef<
 
   // Reconcile shadow root and refs
   React.useEffect(() => {
-    if (templateRef.current === null || !afterClientRender) return;
+    if (templateRef.current === null) return;
 
     const parent = templateRef.current.parentElement;
 
@@ -211,7 +209,7 @@ export const Template = React.forwardRef<
       }
     }
     setInitialized(true);
-  }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus, afterClientRender]);
+  }, [templateRef, shadowrootmode, forwardedRef, delegatesFocus]);
 
   const childrenWithStyle = (
     <>
@@ -249,41 +247,13 @@ export const Template = React.forwardRef<
 
   // Initially render as usual until the shadowroot is initialized
   return (
-    <>
-      {afterClientRender || dsd === 'on'
-        ? <template
-            ref={templateRef}
-            {...dsdProps}
-            {...forwardedProps}
-          >
-            {childrenWithStyle}
-          </template>
-        : <></>
-      }
-      {dsd === 'emulated'
-        ? <react-shadow-scope>
-            <style dangerouslySetInnerHTML={{
-              __html: `
-                react-shadow-scope {
-                  visibility: hidden;
-                  display: contents;
-                }
-              `,
-            }} />
-            <noscript>
-              <style dangerouslySetInnerHTML={{
-                __html: `
-                  react-shadow-scope {
-                    visibility: visible;
-                  }
-                `,
-              }} />
-            </noscript>
-            {children}
-          </react-shadow-scope>
-        : <></>
-      }
-    </>
+    <template
+      ref={templateRef}
+      {...dsdProps}
+      {...forwardedProps}
+    >
+      {childrenWithStyle}
+    </template>
   );
 });
 
@@ -303,8 +273,7 @@ export const CustomElement = React.forwardRef<
   HTMLElement,
   CustomElementProps
 >((props, forwardedRef) => {
-  const { tag, children, ...forwardedProps } = props;
-  const Tag = tag;
+  const { tag: Tag, children, ...forwardedProps } = props;
   const shadowScopeContext = React.useContext(ShadowScopeContext);
 
   const childrenArray = React.Children.toArray(children);
@@ -326,11 +295,24 @@ export const CustomElement = React.forwardRef<
       : <>{parseSlots(lightDomChildren, template)}</>;
 
   return (
-    <Tag {...forwardedProps} ref={forwardedRef}>
-      {shadowScopeContext.dsd === 'emulated'
-        ? templateContent
-        : children
+    <>
+      {hasHydrated
+        ? <></>
+        : (
+            <>
+              <style>{`${Tag} { visibility: hidden; }`}</style>
+              <noscript>
+                <style>{`${Tag} { visibility: visible; }`}</style>
+              </noscript>
+            </>
+          )
       }
-    </Tag>
+      <Tag {...forwardedProps} ref={forwardedRef}>
+        {shadowScopeContext.dsd === 'emulated'
+          ? templateContent
+          : children
+        }
+      </Tag>
+    </>
   );
 });
