@@ -1,7 +1,7 @@
 import React from 'react'
 
 export type ShadowScopeConfig = {
-	dsd: 'on' | 'off' | 'simulated';
+	dsd: 'on' | 'off' | 'emulated';
 };
 
 export const DEFAULT_SHADOW_SCOPE_CONTEXT: ShadowScopeConfig = {
@@ -19,7 +19,7 @@ export type ShadowScopeConfigProviderProps = React.PropsWithChildren<{
  *
  * @example
  * ```tsx
- * <ShadowScopeProvider config={{ dsd: 'simulated' }}>
+ * <ShadowScopeProvider config={{ dsd: 'emulated' }}>
  *   {children}
  * </ShadowScopeProvider>
  * ```

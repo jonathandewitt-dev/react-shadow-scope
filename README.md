@@ -6,7 +6,7 @@
 <Scope stylesheet={styles}>
 ```
 
-Traditional global CSS risks naming collisions, specificity conflicts, and unwanted style inheritance. Modern tools have been designed to solve these problems by using simulated encapsulation, but nothing can protect from inherited styles except for shadow DOM.
+Traditional global CSS risks naming collisions, specificity conflicts, and unwanted style inheritance. Modern tools have been designed to solve these problems by using emulated encapsulation, but nothing can protect from inherited styles except for shadow DOM.
 
 This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
@@ -93,17 +93,17 @@ declare global {
 
 > **Warning**
 >
-> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `simulated` or `off` by passing the `config` prop.
+> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `emulated` or `off` by passing the `config` prop.
 >
 > You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
 > ```tsx
-> <ShadowScopeConfigProvider config={{ dsd: 'simulated' }}>
+> <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
 > ```
 > ...OR you can pass it directly to each `<Scope>` or `<Template>`. Each instance will override the provider's config.
 > ```tsx
-> <Scope config={{ dsd: 'simulated' }}>
+> <Scope config={{ dsd: 'emulated' }}>
 > ```
-> Setting `dsd` to `off` will disable server-side rendering altogether, while `simulated` will initially render (hidden) html outside of the `<template>` tags on the server.
+> Setting `dsd` to `off` will disable server-side rendering altogether, while `emulated` will initially render (hidden) html outside of the `<template>` tags on the server.
 
 > **Warning**
 >
@@ -247,15 +247,15 @@ This is just an abstraction over shadow DOM, so anything you can do with shadow 
 
 ### Declarative Shadow DOM
 
-If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>`. This adds support to React for the native `<template>` element, with some added features.
+If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>` together with `<CustomElement>`. This adds support to React for the native `<template>` element, with some added features.
 
 ```jsx
-import { useCSS, Template } from 'react-shadow-scope';
+import { useCSS, Template, CustomElement } from 'react-shadow-scope';
 
 const MyComponent = () => {
   const css = useCSS();
   return (
-    <card-element>
+    <CustomElement tag="card-element">
       {/* Note the declarative `adoptedStyleSheets` prop! */}
       <Template
         shadowrootmode="closed"
@@ -268,7 +268,7 @@ const MyComponent = () => {
       </Template>
       <span slot="heading">Title Here</span>
       <p>Inside Default Slot</p>
-    </card-element>
+    </CustomElement>
   );
 }
 ```

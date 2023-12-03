@@ -1,7 +1,8 @@
-import React, { AriaAttributes, DOMAttributes } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import { StyleSheet, isCSSStyleSheet } from './css-utils';
 import { ShadowScopeConfig, ShadowScopeContext } from './context';
+import { parseSlots } from './children-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
 let declarativeShadowDOMSupported: boolean | null = null;
@@ -29,8 +30,8 @@ function checkDSDSupport(): boolean {
  * "Exported variable <variable name> has or is using private name <private name>"
  * @see https://github.com/microsoft/TypeScript/issues/6307
  */
-type AriaAttrs = AriaAttributes;
-type DomAttrs<T> = DOMAttributes<T>;
+type AriaAttrs = React.AriaAttributes;
+type DomAttrs<T> = React.DOMAttributes<T>;
 
 // We have to patch React's interface for HTML attributes for now, since it currently errors on `shadowrootmode`
 declare module 'react' {
@@ -259,7 +260,7 @@ export const Template = React.forwardRef<
           </template>
         : <></>
       }
-      {dsd === 'simulated'
+      {dsd === 'emulated'
         ? <react-shadow-scope>
             <style dangerouslySetInnerHTML={{
               __html: `
@@ -283,5 +284,53 @@ export const Template = React.forwardRef<
         : <></>
       }
     </>
+  );
+});
+
+type CustomElementProps = React.PropsWithChildren<
+  {
+    /**
+     * The tag name of the custom element.
+     */
+    tag: keyof ReactShadowScope.CustomElements;
+  } & React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLElement>,
+    HTMLElement
+  >
+>;
+
+export const CustomElement = React.forwardRef<
+  HTMLElement,
+  CustomElementProps
+>((props, forwardedRef) => {
+  const { tag, children, ...forwardedProps } = props;
+  const Tag = tag;
+  const shadowScopeContext = React.useContext(ShadowScopeContext);
+
+  const childrenArray = React.Children.toArray(children);
+  const template = childrenArray.find((child) => {
+    return React.isValidElement(child) && child.type === Template;
+  }) as React.ReactElement | undefined;
+
+  const lightDomChildren = childrenArray.filter((child) => {
+    return !React.isValidElement(child) || child.type !== Template;
+  });
+
+  const [hasHydrated, setHasHydrated] = React.useState(false);
+  React.useEffect(() => { setHasHydrated(true); }, []);
+
+  const templateContent = typeof template === 'undefined'
+    ? <></>
+    : hasHydrated
+      ? <>{children}</>
+      : <>{parseSlots(lightDomChildren, template)}</>;
+
+  return (
+    <Tag {...forwardedProps} ref={forwardedRef}>
+      {shadowScopeContext.dsd === 'emulated'
+        ? templateContent
+        : children
+      }
+    </Tag>
   );
 });

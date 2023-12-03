@@ -1,7 +1,7 @@
 'use client';
 
 // import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
-import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, ShadowScopeConfigProvider } from '../../../dist';
+import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, ShadowScopeConfigProvider, CustomElement } from '../../../dist';
 
 declare global {
   namespace ReactShadowScope {
@@ -15,7 +15,7 @@ declare global {
 export default function Demo() {
   const css = useCSS();
   return (
-    <ShadowScopeConfigProvider config={{ dsd: 'simulated' }}>
+    <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
       <div>
         <h1>Encapsulation is cool</h1>
 
@@ -49,7 +49,7 @@ export default function Demo() {
 
         <h2>Prefer more fine-grained control?</h2>
 
-        <card-element>
+        <CustomElement tag="card-element">
           <Template
             shadowrootmode="closed"
             adoptedStyleSheets={[
@@ -101,7 +101,7 @@ export default function Demo() {
             approach. Not everyone is a fan, but it's nice to expose optional
             complexity for greater flexibility and control.
           </p>
-        </card-element>
+        </CustomElement>
 
         <Scope href="/styles.css">
           <p className="info">These styles were fetched with the `href` prop.</p>
