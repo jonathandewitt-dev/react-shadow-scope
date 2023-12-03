@@ -322,7 +322,7 @@ export const CustomElement = React.forwardRef<
   const templateContent = typeof template === 'undefined'
     ? <></>
     : hasHydrated
-      ? <>{children}</>
+      ? children
       : <>{parseSlots(lightDomChildren, template)}</>;
 
   return (

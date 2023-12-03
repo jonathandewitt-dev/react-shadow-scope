@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, css, normalizedScope } from './css-utils';
-import { Template } from './template';
+import { CustomElement, Template } from './template';
 import { ShadowScopeConfig } from './context';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -118,7 +118,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
   (props, forwardedRef) => {
     const {
       children,
-      tag: CustomElement = 'react-shadow-scope',
+      tag = 'react-shadow-scope',
       stylesheet,
       stylesheets = [],
       href,
@@ -210,7 +210,13 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
     const convertedProps = className ? { class: className } : {};
 
     return (
-      <CustomElement ref={forwardedRef} {...convertedProps} {...forwardedProps}>
+      <CustomElement
+        // @ts-ignore // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
+        ref={forwardedRef}
+        tag={tag}
+        {...convertedProps}
+        {...forwardedProps}
+      >
         <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets} config={config}>
           {!hrefsLoaded
 
