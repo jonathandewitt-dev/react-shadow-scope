@@ -1,5 +1,10 @@
+import { ShadowScopeConfigProvider } from '../../../dist';
 import Demo from './demo';
 
 export default function Home() {
-  return <Demo />;
+  return (
+    <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
+      <Demo />
+    </ShadowScopeConfigProvider>
+  );
 }
