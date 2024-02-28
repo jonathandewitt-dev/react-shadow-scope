@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 // import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
-import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, ShadowScopeConfigProvider, CustomElement } from '../../../dist';
+import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, ShadowScopeConfigProvider, CustomElement, css } from '../../../dist';
 
 declare global {
   namespace ReactShadowScope {
@@ -12,8 +13,41 @@ declare global {
   }
 }
 
+const staticStyles = css`
+article {
+  background-color: #f0f0f0;
+  border: 0 solid;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.2);
+  font-family: sans-serif;
+  overflow: hidden;
+  margin: 0 auto;
+  max-width: 20rem;
+  text-align: center;
+}
+header {
+  border-bottom: 0.1rem solid #ddd;
+  padding: 1rem;
+}
+h3 {
+  margin: 0;
+  padding: 0;
+}
+.body {
+  padding: 1rem 2rem;
+  min-height: 10rem;
+}
+`;
+
+const key = Symbol();
+
 export default function Demo() {
-  const css = useCSS();
+  const css = useCSS(key);
+  const [test, setTest] = useState(false);
+  console.log('test', test);
+  useEffect(() => {
+    setTimeout(() => void setTest(true), 1000);
+  }, []);
   return (
     <div>
       <h1>Encapsulation is cool</h1>
@@ -26,7 +60,7 @@ export default function Demo() {
       </p>
 
       {/* prettier-ignore */}
-      <Scope tag="my-element" stylesheet={css`p { color: green; font-family: sans-serif; }`}>
+      <Scope tag="my-element" stylesheet={css`p { color: ${test ? 'green' : 'blue'}; font-family: sans-serif; }`}>
         <p>This scope solves the problem though!</p>
         <p>
           This &lt;p&gt; tag does not inherit the bold font from outside. The
@@ -51,33 +85,7 @@ export default function Demo() {
       <CustomElement tag="card-element">
         <Template
           shadowrootmode="closed"
-          adoptedStyleSheets={[
-            css`
-              article {
-                background-color: #f0f0f0;
-                border: 0 solid;
-                border-radius: 0.5rem;
-                box-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.2);
-                font-family: sans-serif;
-                overflow: hidden;
-                margin: 0 auto;
-                max-width: 20rem;
-                text-align: center;
-              }
-              header {
-                border-bottom: 0.1rem solid #ddd;
-                padding: 1rem;
-              }
-              h3 {
-                margin: 0;
-                padding: 0;
-              }
-              .body {
-                padding: 1rem 2rem;
-                min-height: 10rem;
-              }
-            `,
-          ]}
+          adoptedStyleSheets={[staticStyles]}
         >
           <article>
             <header>
