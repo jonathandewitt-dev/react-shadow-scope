@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { StyleSheet, css, normalizedScope } from './css-utils';
+import { StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { CustomElement, Template } from './template';
 import { ShadowScopeConfig } from './context';
 
@@ -140,6 +140,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
     );
     const pending = typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded;
 
+    // Combine all stylesheets into a single string to use for change detection.
+    // This may not be the most performant solution, but it feels necessary...
+    const localStyleText = [...stylesheets, stylesheet].map((s) => isCSSStyleSheet(s) ? Array.from(s.cssRules).map((r) => r.cssText).join('') : s).join('');
+
     const localStyleSheets = React.useMemo(
       () => {
         const _localStylesheets = [
@@ -151,7 +155,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         if (typeof stylesheet !== 'undefined') _localStylesheets.push(stylesheet);
         return _localStylesheets;
       },
-      [pending, stylesheet, stylesheets],
+      [pending, localStyleText],
     );
     const [allStyleSheets, setAllStyleSheets] = React.useState<StyleSheet[]>(localStyleSheets);
 
@@ -206,7 +210,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
           abortController.abort();
         }
       };
-    }, [pending]);
+    }, [pending, localStyleText]);
 
     const convertedProps = className ? { class: className } : {};
 
