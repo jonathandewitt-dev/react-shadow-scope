@@ -44,7 +44,6 @@ const key = Symbol();
 export default function Demo() {
   const css = useCSS(key);
   const [test, setTest] = useState(false);
-  console.log('test', test);
   useEffect(() => {
     setTimeout(() => void setTest(true), 1000);
   }, []);
