@@ -12,17 +12,12 @@ function checkDSDSupport(): boolean {
   // If it's rendering server side, just proceed as if it's supported.
   if (typeof window === 'undefined') return true;
   if (declarativeShadowDOMSupported !== null) return declarativeShadowDOMSupported;
-  if (typeof DOMParser === 'undefined') return false;
 
   // Parse a DSD fragment to check
-  const fragment = new DOMParser().parseFromString(
+  const fragment = Document.parseHTMLUnsafe(
     '<div><template shadowrootmode="open"></template></div>',
-    'text/html',
-
-    // @ts-ignore-next-line; TS doesn't know `parseFromString` supports a 3rd argument.
-    { includeShadowRoots: true },
   );
-  declarativeShadowDOMSupported = !!fragment.querySelector('div')?.shadowRoot;
+  declarativeShadowDOMSupported = fragment.querySelector('div')!.shadowRoot !== null;
   return declarativeShadowDOMSupported;
 }
 
