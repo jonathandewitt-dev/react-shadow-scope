@@ -1,5 +1,4 @@
-// import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
-import { Scope, useCSS, Template, Tailwind } from '../../../dist';
+import { Scope, useCSS, Template, Tailwind } from 'react-shadow-scope';
 
 export const Demo = () => {
   const css = useCSS();

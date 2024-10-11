@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "next dev --port 5001",
+    "start": "next dev --port 5050",
     "tailwind": "tailwindcss -i ./app/tailwind.css -o ./public/tailwind.css"
   },
   "dependencies": {
@@ -12,7 +12,7 @@
     "postcss": "8.4.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-shadow-scope": "^0.7.2",
+    "react-shadow-scope": "file:../..",
     "tailwindcss": "3.3.2"
   },
   "devDependencies": {

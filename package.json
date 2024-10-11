@@ -7,9 +7,14 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "/dist",
+    "/package.json",
+    "/README.md",
+    "/LICENSE"
   ],
   "scripts": {
+    "demo": "cd demo/react && rm -rf node_modules && npm i && npm start",
+    "demo:next": "cd demo/next && rm -rf node_modules && npm i && npm start",
     "build": "tsup src/index.ts --format cjs,esm --dts --no-clean",
     "lint": "tsc"
   },
