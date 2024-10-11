@@ -196,6 +196,11 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
           }
           setAllStyleSheets(_allStyleSheets);
           setHrefsLoaded(true);
+        }).catch((error) => {
+          if (error === "Aborted due to cleanup." || error.name === "AbortError") {
+            return;
+          }
+          console.error(error);
         });
       } else {
 
@@ -207,7 +212,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       // cleanup any unfinished requests
       return () => {
         for (const abortController of abortControllers) {
-          abortController.abort();
+          abortController.abort('Aborted due to cleanup.');
         }
       };
     }, [pending, localStyleText]);
