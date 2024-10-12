@@ -1,6 +1,6 @@
 {
   "name": "react-shadow-scope",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Brings Shadow DOM CSS encapsulation to React, along with a DSD-compatible template element.",
   "type": "module",
   "main": "./dist/index.cjs",
