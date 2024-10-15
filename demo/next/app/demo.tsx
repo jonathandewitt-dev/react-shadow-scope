@@ -8,6 +8,8 @@ declare global {
     interface CustomElements {
       'my-element': CustomIntrinsicElement;
       'card-element': CustomIntrinsicElement;
+      'my-input': CustomIntrinsicElement;
+      'my-button': CustomIntrinsicElement;
     }
   }
 }
@@ -43,6 +45,7 @@ const key = Symbol();
 export default function Demo() {
   const css = useCSS(key);
   const [test, setTest] = useState(false);
+  const [value, setValue] = useState('');
   useEffect(() => {
     setTimeout(() => void setTest(true), 1000);
   }, []);
@@ -120,6 +123,20 @@ export default function Demo() {
           This block was rendered inside of a shadow DOM scope with Tailwind.
         </p>
       </Tailwind>
+
+      <form onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        console.log(formData.get('my-input'));
+      }}>
+        <p>Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM encapsulating HTML form controls.</p>
+        <Scope tag="my-input" formControl={{ is: 'input', value, required: true, name: 'my-input' }}>
+          <input onChange={(event) => setValue(event.currentTarget.value)} />
+        </Scope>
+        <Scope tag="my-button" formControl={{ is: 'button', type: 'submit' }}>
+          <button>Submit</button>
+        </Scope>
+      </form>
     </div>
   )
 }

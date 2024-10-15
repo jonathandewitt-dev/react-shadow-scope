@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { CustomElement, Template } from './template';
 import { ShadowScopeConfig } from './context';
+import { defineAria, FormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
   class?: string,
@@ -69,6 +70,10 @@ export type ScopeProps = React.PropsWithChildren<Partial<{
    */
   config?: ShadowScopeConfig;
   /**
+   * To enable form controls to participate in forms outside the shadow DOM, set this prop to the appropriate value.
+   */
+  formControl?: FormControl;
+  /**
    * For internal use only. This is not a stable feature and may be removed at any time.
    */
   __transform: (cssString: string) => string,
@@ -128,6 +133,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       slottedContent,
       normalize = true,
       config,
+      formControl,
       __transform = s => s,
       className,
       ...forwardedProps
@@ -217,6 +223,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
       };
     }, [pending, localStyleText]);
 
+    React.useEffect(() => {
+      if (formControl !== undefined) defineAria(tag, formControl);
+    }, [formControl]);
+
     const convertedProps = className ? { class: className } : {};
 
     return (
@@ -225,6 +235,12 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         ref={forwardedRef}
         tag={tag}
         config={config}
+        name={formControl?.name}
+        value={formControl?.value}
+        disabled={formControl?.disabled}
+        required={formControl?.is === 'button' ? undefined : formControl?.required}
+        readonly={formControl?.is === 'button' ? undefined : formControl?.readonly}
+        placeholder={formControl?.is === 'button' ? undefined : formControl?.placeholder}
         {...convertedProps}
         {...forwardedProps}
       >
