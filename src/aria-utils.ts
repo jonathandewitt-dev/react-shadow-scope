@@ -17,7 +17,7 @@ type GenericFormControl = SharedFormControlProps & {
 	/**
 	 * The tag name of the form control element to use.
 	 */
-	is: 'input' | 'textarea';
+	is: 'input' | 'textarea' | 'select';
 	/**
 	 * The required state of the form control element.
 	 */
@@ -50,17 +50,43 @@ export type FormControl = GenericFormControl | ButtonFormControl;
 export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formControl: FormControl) => {
 	if (customElements.get(tag) !== undefined) return;
 	class FormControlElement extends HTMLElement {
-		static get formAssociated() {
-			return true;
-		}
-		static get observedAttributes() {
-			return ['value', 'type'];
-		}
+		static formAssociated = true;
+		static observedAttributes = ['value'];
 		#internals = this.attachInternals();
+
+		#value = '';
+		#busy = false;
+		set value(newValue: string) {
+			if (this.#busy) return;
+			this.#busy = true;
+			this.#value = newValue;
+			this.#updateValue(newValue);
+			this.#busy = false;
+		}
+		get value() {
+			return this.#value;
+		}
+
+		#handleClick = (() => {
+			if (formControl.is !== 'button') return;
+			const type = formControl.type ?? 'submit';
+			if (type === 'submit') this.#internals.form?.requestSubmit();
+		}).bind(this);
+
+		#handleEnter = ((event: KeyboardEvent) => {
+			if (event.key === 'Enter') this.#handleClick();
+		}).bind(this);
+
+		#handleReset = (() => {
+			this.#internals.setFormValue('');
+		}).bind(this);
+
 		connectedCallback() {
-			this.#internals.setFormValue(formControl.value ?? '');
-			this.#internals.ariaDisabled = String(formControl.disabled ?? false);
-			const form = this.#internals.form;
+			const value = formControl.value ?? '';
+			this.value = value;
+			this.#internals.setFormValue(value);
+			this.#updateValidity();
+			const { form } = this.#internals;
 			switch (formControl?.is) {
 				case 'button':
 					this.#internals.role = 'button';
@@ -71,21 +97,15 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 						this.#internals.ariaPressed = 'false';
 					});
 					if (form === null) break;
-					this.addEventListener('click', () => {
-						const type = formControl.type ?? 'submit';
-						if (type === 'submit') {
-							form.dispatchEvent(new Event('submit', { cancelable: true }));
-						}
-					});
-					form.addEventListener('keydown', (event) => {
-						if (event.key === 'Enter') {
-							this.click();
-						}
-					});
-					form.addEventListener('submit', (event) => {
-						if (event.isTrusted) return;
-						form.requestSubmit();
-					});
+					this.addEventListener('click', this.#handleClick);
+					form.addEventListener('keydown', this.#handleEnter);
+					break;
+				case 'select':
+					this.#internals.role = 'combobox';
+					this.#internals.ariaExpanded = 'false';
+					this.#internals.ariaHasPopup = 'listbox';
+					this.#internals.ariaAutoComplete = 'list';
+					this.#internals.ariaMultiSelectable = 'false';
 					break;
 				case 'textarea':
 					this.#internals.ariaMultiLine = 'true';
@@ -93,35 +113,56 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 					this.#internals.role = 'textbox';
 					this.#internals.ariaPlaceholder = formControl.placeholder ?? null;
 				default:
-					this.#internals.ariaRequired = String(formControl.required ?? false);
-					this.#internals.ariaReadOnly = String(formControl.readonly ?? false);
-					form?.addEventListener('reset', () => {
-						this.#internals.setFormValue('');
-					});
+					form?.addEventListener('reset', this.#handleReset);
 					break;
 			}
 		}
-		attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+
+		disconnectedCallback() {
+			this.#internals.form?.removeEventListener('keydown', this.#handleEnter);
+			this.#internals.form?.removeEventListener('reset', this.#handleReset);
+		}
+
+		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
-			switch (name) {
-				case 'value': {
-					this.#internals.setFormValue(newValue);
-					break;
-				}
-				case 'required': {
-					this.#internals.ariaRequired = newValue;
-					break;
-				}
-				case 'readonly': {
-					this.#internals.ariaReadOnly = newValue;
-					break;
-				}
-				case 'placeholder': {
-					this.#internals.ariaPlaceholder = newValue;
-					break;
-				}
-			}
+			if (name === 'value') this.#updateValue(newValue);
+		}
+
+		#updateValue(newValue: string | null) {
+			const value = newValue ?? '';
+			this.#internals.setFormValue(value);
+			this.value = value;
+			this.#updateValidity();
+		}
+
+		#updateValidity() {
+			if (formControl.is === 'button') return;
+			setTimeout(() => {
+				const input = this.shadowRoot?.querySelector(formControl.is) ?? document.createElement(formControl.is);
+				this.#internals.setValidity(input.validity, input.validationMessage, input);
+			}, 100);
+		}
+
+		get validity(): ValidityState {
+			return this.#internals.validity;
+		}
+
+		get validationMessage(): string {
+			return this.#internals.validationMessage;
+		}
+
+		checkValidity() {
+			return this.#internals.checkValidity();
+		}
+
+		reportValidity() {
+			return this.#internals.reportValidity();
+		}
+
+		formDisabledCallback(disabled: boolean) {
+			this.#internals.ariaDisabled = String(disabled);
 		}
 	}
+
 	customElements.define(tag, FormControlElement);
 };

@@ -10,6 +10,7 @@ declare global {
       'card-element': CustomIntrinsicElement;
       'my-input': CustomIntrinsicElement;
       'my-button': CustomIntrinsicElement;
+      'my-select': CustomIntrinsicElement;
     }
   }
 }
@@ -46,6 +47,7 @@ export default function Demo() {
   const css = useCSS(key);
   const [test, setTest] = useState(false);
   const [value, setValue] = useState('');
+  const [selected, setSelected] = useState('');
   useEffect(() => {
     setTimeout(() => void setTest(true), 1000);
   }, []);
@@ -127,11 +129,19 @@ export default function Demo() {
       <form onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
-        console.log(formData.get('my-input'));
+        console.log(formData.entries().toArray());
       }}>
         <p>Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM encapsulating HTML form controls.</p>
-        <Scope tag="my-input" formControl={{ is: 'input', value, required: true, name: 'my-input' }}>
-          <input onChange={(event) => setValue(event.currentTarget.value)} />
+        <Scope tag="my-input" formControl={{ is: 'input', value, name: 'my-input' }}>
+          <input onChange={(event) => setValue(event.currentTarget.value)} required />
+        </Scope>
+        <Scope tag="my-select" formControl={{ is: 'select', value: selected, required: true, name: 'my-select' }}>
+          <select onChange={(event) => setSelected(event.currentTarget.value)}>
+            <option></option>
+            <option value="1">One</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+          </select>
         </Scope>
         <Scope tag="my-button" formControl={{ is: 'button', type: 'submit' }}>
           <button>Submit</button>

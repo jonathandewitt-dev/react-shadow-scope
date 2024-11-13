@@ -244,7 +244,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
         {...convertedProps}
         {...forwardedProps}
       >
-        <Template shadowrootmode="open" adoptedStyleSheets={allStyleSheets}>
+        <Template shadowrootmode="open" delegatesFocus={true} adoptedStyleSheets={allStyleSheets}>
           {!hrefsLoaded
 
             /**
