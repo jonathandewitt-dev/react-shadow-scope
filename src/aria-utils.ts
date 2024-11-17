@@ -1,8 +1,10 @@
+type FormControlValue = File | string | FormData | null;
+
 type SharedFormControlProps = {
 	/**
 	 * The value of the form control element.
 	 */
-	value?: string;
+	value?: FormControlValue;
 	/**
 	 * The name of the form control element.
 	 */
@@ -54,14 +56,18 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 		static observedAttributes = ['value'];
 		#internals = this.attachInternals();
 
-		#value = '';
+		#value: FormControlValue = null;
 		#busy = false;
-		set value(newValue: string) {
+		set value(newValue: FormControlValue) {
 			if (this.#busy) return;
 			this.#busy = true;
 			this.#value = newValue;
-			this.#updateValue(newValue);
-			this.#busy = false;
+			this.#internals.setFormValue(newValue);
+			this.setAttribute('value', String(newValue ?? ''));
+			this.#updateValidity();
+			requestAnimationFrame(() => {
+				this.#busy = false;
+			});
 		}
 		get value() {
 			return this.#value;
@@ -78,13 +84,10 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 		}).bind(this);
 
 		#handleReset = (() => {
-			this.#internals.setFormValue('');
+			this.value = '';
 		}).bind(this);
 
 		connectedCallback() {
-			const value = formControl.value ?? '';
-			this.value = value;
-			this.#internals.setFormValue(value);
 			this.#updateValidity();
 			const { form } = this.#internals;
 			switch (formControl?.is) {
@@ -125,14 +128,7 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
-			if (name === 'value') this.#updateValue(newValue);
-		}
-
-		#updateValue(newValue: string | null) {
-			const value = newValue ?? '';
-			this.#internals.setFormValue(value);
-			this.value = value;
-			this.#updateValidity();
+			if (name === 'value') this.value = newValue;
 		}
 
 		#updateValidity() {

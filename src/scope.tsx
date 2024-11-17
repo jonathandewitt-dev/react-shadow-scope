@@ -225,7 +225,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
 
     React.useEffect(() => {
       if (formControl !== undefined) defineAria(tag, formControl);
-    }, [formControl]);
+    }, [tag, formControl]);
 
     const convertedProps = className ? { class: className } : {};
 
