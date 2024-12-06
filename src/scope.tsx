@@ -1,9 +1,9 @@
 'use client';
 import React from 'react';
-import { StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
+import { type StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { CustomElement, Template } from './template';
-import { ShadowScopeConfig } from './context';
-import { defineAria, FormControl } from './aria-utils';
+import { type ShadowScopeConfig } from './context';
+import { defineAria, type FormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
 	class?: string;
@@ -164,7 +164,9 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		.join('');
 
 	const localStyleSheets = React.useMemo(() => {
-		const _localStylesheets = [cache.normalize, cache.base, ...stylesheets];
+		const _localStylesheets = [];
+		if (normalize) _localStylesheets.push(cache.normalize);
+		_localStylesheets.push(cache.base, ...stylesheets);
 		if (pending) _localStylesheets.push(pendingStyles);
 		if (typeof stylesheet !== 'undefined') _localStylesheets.push(stylesheet);
 		return _localStylesheets;
@@ -240,7 +242,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 
 	return (
 		<CustomElement
-			// @ts-ignore // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
+			// @ts-expect-error // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
 			ref={forwardedRef}
 			tag={tag}
 			config={config}

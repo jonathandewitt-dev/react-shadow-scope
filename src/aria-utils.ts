@@ -63,7 +63,7 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 			this.#busy = true;
 			this.#value = newValue;
 			this.#internals.setFormValue(newValue);
-			this.setAttribute('value', String(newValue ?? ''));
+			this.setAttribute('value', String(typeof newValue === 'object' ? '' : (newValue ?? '')));
 			this.#updateValidity();
 			requestAnimationFrame(() => {
 				this.#busy = false;

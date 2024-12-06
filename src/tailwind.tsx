@@ -1,6 +1,6 @@
 'use client';
-import { ShadowScopeConfig } from './context';
-import { StyleSheet, css } from './css-utils';
+import { type ShadowScopeConfig } from './context';
+import { type StyleSheet, css } from './css-utils';
 import { Scope } from './scope';
 import * as React from 'react';
 

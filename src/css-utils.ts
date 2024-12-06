@@ -12,7 +12,9 @@ export const isCSSStyleSheet = (stylesheet?: StyleSheet): stylesheet is CSSStyle
 
 const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unknown[]) => {
 	return strArr.reduce((resultStr, currentStr, i) => {
-		return resultStr + currentStr + (interpolated[i] ?? '');
+		const _value = interpolated[i];
+		const value = typeof _value === 'object' ? '' : _value;
+		return resultStr + currentStr + String(value);
 	}, '');
 };
 
@@ -42,19 +44,19 @@ export const css = (strArr: TemplateStringsArray, ...interpolated: unknown[]): S
  * Using this map as a persisted reference so stylesheets can be shared
  * between all instances of a component using the `useCSS` hook.
  */
-const stylesheetMap = new Map<Symbol, StyleSheet>();
+const stylesheetMap = new Map<symbol, StyleSheet>();
 
 /**
  * Return the `css` utility for HMR support without sacrificing performance.
  */
-export const useCSS = (key?: Symbol) => {
+export const useCSS = (key?: symbol) => {
 	return (strArr: TemplateStringsArray, ...interpolated: unknown[]): StyleSheet => {
 		const symbol = key ?? Symbol();
 		const existingStylesheet = stylesheetMap.get(symbol);
 		if (existingStylesheet) {
 			const styles = getTaggedTemplateStr(strArr, ...interpolated);
 			if (isCSSStyleSheet(existingStylesheet)) {
-				existingStylesheet.replace(styles);
+				existingStylesheet.replace(styles).catch(console.error);
 				return existingStylesheet;
 			}
 			stylesheetMap.set(symbol, styles);

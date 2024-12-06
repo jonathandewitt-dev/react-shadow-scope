@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Slots = { [key: string]: React.ReactNode[] };
+type Slots = Record<string, React.ReactNode[]>;
 
 /**
  * Replace `<slot>` elements with the content provided by the user.
@@ -28,7 +28,7 @@ const replaceSlots = (children: React.ReactNode, slots: Slots) => {
  * Return template content with the slots filled in.
  */
 export const parseSlots = (children: React.ReactNode[], template: React.ReactElement) => {
-	const slots: { [key: string]: React.ReactNode[] } = {};
+	const slots: Record<string, React.ReactNode[]> = {};
 	for (const child of children) {
 		if (React.isValidElement(child)) {
 			const slotName = child.props.slot ?? 'default';
@@ -39,5 +39,5 @@ export const parseSlots = (children: React.ReactNode[], template: React.ReactEle
 		}
 	}
 
-	return replaceSlots(template.props.children, slots);
+	return replaceSlots(template.props.children as React.ReactNode, slots);
 };

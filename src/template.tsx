@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { StyleSheet, isCSSStyleSheet } from './css-utils';
-import { ShadowScopeConfig, ShadowScopeContext } from './context';
+import { type StyleSheet, isCSSStyleSheet } from './css-utils';
+import { type ShadowScopeConfig, ShadowScopeContext } from './context';
 import { parseSlots } from './children-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
