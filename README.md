@@ -8,11 +8,11 @@
 
 Traditional global CSS risks naming collisions, specificity conflicts, and unwanted style inheritance. Modern tools have been designed to solve these problems by using emulated encapsulation, but nothing can protect from inherited styles except for shadow DOM.
 
-This package does *not* burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
+This package does _not_ burden you with all the boilerplate around shadow DOM, nor force you to use web components. Did you know you can attach a shadow root to regular elements, like a `<div>`? That's essentially what `react-shadow-scope` does behind the curtain.
 
 > **Note** This package supports Tailwind in the shadow DOM via the [`<Tailwind>`](#tailwind) component. Using Tailwind globally risks naming collisions with other utility classes. This can be especially important for library authors.
 
-As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the *single best tool we have*.
+As a rule of thumb, you should limit your global CSS to little or nothing. The native `@scope` rule can get you pretty far, but it still doesn't protect from inherited styles. Shadow DOM encapsulation is the _single best tool we have_.
 
 ## Table of Contents
 
@@ -67,13 +67,17 @@ const MyComponent = () => (
 > There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `emulated` or `off` by passing the `config` prop.
 >
 > You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
+>
 > ```tsx
 > <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
 > ```
+>
 > ...OR you can pass it directly to each `<Scope>`, `<CustomElement>`, or `<Tailwind>`. Each instance will override the provider's config.
+>
 > ```tsx
 > <Scope config={{ dsd: 'emulated' }}>
 > ```
+>
 > Setting `dsd` to `emulated` will initially render (hidden) HTML by parsing slots in the light DOM, then enhance with the shadow DOM after hydration completes.
 > Setting `dsd` to `off` will disable server-side rendering altogether.
 
@@ -86,6 +90,7 @@ This can be overridden via the `tag` prop, in case of conflicts or for better le
 ```jsx
 <Scope tag="my-element">
 ```
+
 The above will output: `<my-element>`
 
 If you're using TypeScript, you will need to merge with the interface where these element types are declared.
@@ -146,11 +151,17 @@ import { useCSS, Scope } from 'react-shadow-scope';
 const MyComponent = () => {
   const css = useCSS();
   return (
-    <Scope stylesheet={css`h1 { color: red }`}>
+    <Scope
+      stylesheet={css`
+        h1 {
+          color: red;
+        }
+      `}
+    >
       <h1>title here</h1>
     </Scope>
   );
-}
+};
 ```
 
 To ensure that only one stylesheet gets constructed even when you use a component multiple times, you can create a `Symbol` outside the component function, then pass it to the `useCSS` hook. This will uniquely identify a single reference for each instance of the component.
@@ -167,10 +178,11 @@ const MyComponent = () => {
 > **Note**
 >
 > When using a key, you may not use the resulting `css` function multiple times, because the same reference is shared between each function call. This means the last result will override all previous results. If you need multiple stylesheets, consider calling `useCSS` multiple times with different keys.
+>
 > ```jsx
 > const key1 = Symbol();
 > const key2 = Symbol();
-> 
+>
 > const MyComponent = () => {
 >   const css1 = useCSS(key1);
 >   const css2 = useCSS(key2);
@@ -183,7 +195,11 @@ You can also import the `css` function directly, but the `useCSS` hook works wel
 ```jsx
 import { css } from 'react-shadow-scope';
 
-const stylesheet = css`h1 { color: red }`;
+const stylesheet = css`
+  h1 {
+    color: red;
+  }
+`;
 ```
 
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
@@ -213,6 +229,7 @@ You can also link multiple stylesheets using the `hrefs` (plural) prop.
 ```
 
 When linking external stylesheets, server-rendered components will appear as expected on the first paint. Client rendered components, however, would have a FOUC issue if not for some extra care. While the styles are busy loading on the client, we apply `:host { visibility: hidden; }` by default. These styles can be customized as well, and will only apply while the fetch promise is pending.
+
 ```jsx
 <Scope href="/mystyles.css" pendingStyles={css`
   :host {
@@ -254,7 +271,11 @@ const MyComponent = () => {
       {/* Note the declarative `adoptedStyleSheets` prop! */}
       <Template
         shadowrootmode="closed"
-        adoptedStyleSheets={[css`/* styles here */`]}
+        adoptedStyleSheets={[
+          css`
+            /* styles here */
+          `,
+        ]}
       >
         <h1>
           <slot name="heading">(Untitled)</slot>
@@ -265,7 +286,7 @@ const MyComponent = () => {
       <p>Inside Default Slot</p>
     </CustomElement>
   );
-}
+};
 ```
 
 ---
@@ -287,7 +308,7 @@ Tailwind support is already built-in so you don't have to roll your own solution
 >
 > Your output CSS file should be in the `/public` folder (or wherever your static assets are served from.) The expected filename is `tailwind.css` by default, but can be customized (see next section).
 >
-> Be sure to *remove* tailwind from the `<link>` tag in your HTML. You may want to add this in its place:
+> Be sure to _remove_ tailwind from the `<link>` tag in your HTML. You may want to add this in its place:
 >
 > ```html
 > <style>
@@ -299,6 +320,7 @@ Tailwind support is already built-in so you don't have to roll your own solution
 > ```
 
 #### Tailwind Props
+
 - `href` - This is `/tailwind.css` if omitted. This will be fetched once and cached.
 - `customStyles` - Pass a string or `CSSStyleSheet` (the `css` tagged template function is recommended)
 - `pendingStyles` - Works the same as `pendingStyles` on the `<Scope>` component.

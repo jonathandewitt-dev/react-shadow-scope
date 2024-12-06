@@ -1,22 +1,19 @@
 export const adoptedStylesSupported: boolean =
-  typeof window !== 'undefined' &&
-  window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&
-  window.CSSStyleSheet?.prototype.hasOwnProperty('replace');
+	typeof window !== 'undefined' &&
+	window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&
+	window.CSSStyleSheet?.prototype.hasOwnProperty('replace');
 
 // This should be a string if constructible stylesheets are not supported
 export type StyleSheet = CSSStyleSheet | string;
 
 export const isCSSStyleSheet = (stylesheet?: StyleSheet): stylesheet is CSSStyleSheet => {
-  return typeof CSSStyleSheet !== 'undefined' && stylesheet instanceof CSSStyleSheet;
-}
+	return typeof CSSStyleSheet !== 'undefined' && stylesheet instanceof CSSStyleSheet;
+};
 
-const getTaggedTemplateStr = (
-  strArr: TemplateStringsArray,
-  ...interpolated: unknown[]
-) => {
-  return strArr.reduce((resultStr, currentStr, i) => {
-    return resultStr + currentStr + (interpolated[i] ?? '');
-  }, '');
+const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unknown[]) => {
+	return strArr.reduce((resultStr, currentStr, i) => {
+		return resultStr + currentStr + (interpolated[i] ?? '');
+	}, '');
 };
 
 /**
@@ -31,17 +28,14 @@ const getTaggedTemplateStr = (
  * `
  * ```
  */
-export const css = (
-  strArr: TemplateStringsArray,
-  ...interpolated: unknown[]
-): StyleSheet => {
-  const styles = getTaggedTemplateStr(strArr, ...interpolated);
-  if (adoptedStylesSupported) {
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(styles);
-    return sheet;
-  }
-  return styles;
+export const css = (strArr: TemplateStringsArray, ...interpolated: unknown[]): StyleSheet => {
+	const styles = getTaggedTemplateStr(strArr, ...interpolated);
+	if (adoptedStylesSupported) {
+		const sheet = new CSSStyleSheet();
+		sheet.replaceSync(styles);
+		return sheet;
+	}
+	return styles;
 };
 
 /**
@@ -54,25 +48,22 @@ const stylesheetMap = new Map<Symbol, StyleSheet>();
  * Return the `css` utility for HMR support without sacrificing performance.
  */
 export const useCSS = (key?: Symbol) => {
-  return (
-    strArr: TemplateStringsArray,
-    ...interpolated: unknown[]
-  ): StyleSheet => {
-    const symbol = key ?? Symbol();
-    const existingStylesheet = stylesheetMap.get(symbol);
-    if (existingStylesheet) {
-      const styles = getTaggedTemplateStr(strArr, ...interpolated);
-      if (isCSSStyleSheet(existingStylesheet)) {
-        existingStylesheet.replace(styles);
-        return existingStylesheet;
-      }
-      stylesheetMap.set(symbol, styles);
-      return styles;
-    }
-    const stylesheet = css(strArr, ...interpolated);
-    stylesheetMap.set(symbol, stylesheet);
-    return stylesheet;
-  };
+	return (strArr: TemplateStringsArray, ...interpolated: unknown[]): StyleSheet => {
+		const symbol = key ?? Symbol();
+		const existingStylesheet = stylesheetMap.get(symbol);
+		if (existingStylesheet) {
+			const styles = getTaggedTemplateStr(strArr, ...interpolated);
+			if (isCSSStyleSheet(existingStylesheet)) {
+				existingStylesheet.replace(styles);
+				return existingStylesheet;
+			}
+			stylesheetMap.set(symbol, styles);
+			return styles;
+		}
+		const stylesheet = css(strArr, ...interpolated);
+		stylesheetMap.set(symbol, stylesheet);
+		return stylesheet;
+	};
 };
 
 /**

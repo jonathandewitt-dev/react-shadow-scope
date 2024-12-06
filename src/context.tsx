@@ -26,9 +26,5 @@ export type ShadowScopeConfigProviderProps = React.PropsWithChildren<{
  * ```
  */
 export const ShadowScopeConfigProvider = ({ config, children }: ShadowScopeConfigProviderProps) => {
-	return (
-		<ShadowScopeContext.Provider value={config}>
-			{children}
-		</ShadowScopeContext.Provider>
-	);
+	return <ShadowScopeContext.Provider value={config}>{children}</ShadowScopeContext.Provider>;
 };

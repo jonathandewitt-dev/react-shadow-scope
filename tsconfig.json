@@ -1,14 +1,14 @@
 {
-  "compilerOptions": {
-    "declaration": true,
-    "strict": true,
-    "jsx": "react",
-    "module": "esnext",
-    "target": "ESNext",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "types": ["react"],
-  },
-  "exclude": ["demo"],
+	"compilerOptions": {
+		"declaration": true,
+		"strict": true,
+		"jsx": "react",
+		"module": "esnext",
+		"target": "ESNext",
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"baseUrl": ".",
+		"types": ["react"]
+	},
+	"exclude": ["demo"]
 }
