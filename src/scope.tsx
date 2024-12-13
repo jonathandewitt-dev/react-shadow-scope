@@ -1,8 +1,7 @@
 'use client';
 import React from 'react';
 import { type StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
-import { CustomElement, Template } from './template';
-import { type ShadowScopeConfig } from './context';
+import { Template } from './template';
 import { defineAria, type FormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
@@ -69,10 +68,6 @@ export type ScopeProps = React.PropsWithChildren<
 		 */
 		normalize: boolean;
 		/**
-		 * Configure this instance of `<Scope>`. (Overrides `ShadowScopeConfigProvider`)
-		 */
-		config?: ShadowScopeConfig;
-		/**
 		 * To enable form controls to participate in forms outside the shadow DOM, set this prop to the appropriate value.
 		 */
 		formControl?: FormControl;
@@ -101,10 +96,10 @@ const cache: Cache = {
 	base: css`
 		@layer {
 			/*
-      Accessibility issues with display: contents; only affect semantic tags.
-      <react-shadow-scope> lacks semantics (by default.)
-      The @layer makes this trivial to override if necessary.
-      */
+			Accessibility issues with display: contents; only affect semantic tags.
+			<react-shadow-scope> lacks semantics (by default.)
+			The @layer makes this trivial to override if necessary.
+			*/
 			:host {
 				display: contents;
 			}
@@ -130,7 +125,7 @@ const cache: Cache = {
 export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwardedRef) => {
 	const {
 		children,
-		tag = 'react-shadow-scope',
+		tag: Tag = 'react-shadow-scope',
 		stylesheet,
 		stylesheets = [],
 		href,
@@ -142,7 +137,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		`,
 		slottedContent,
 		normalize = true,
-		config,
 		formControl,
 		__transform = (s) => s,
 		className,
@@ -151,7 +145,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 
 	const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
 	const allHrefs = React.useMemo(() => (typeof href !== 'undefined' ? [href, ...hrefs] : hrefs), [href, hrefs]);
-	const pending = typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded;
+	const pending = allHrefs.length > 0 && !hrefsLoaded;
 
 	// Combine all stylesheets into a single string to use for change detection.
 	// This may not be the most performant solution, but it feels necessary...
@@ -237,16 +231,14 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	}, [pending, localStyleText]);
 
 	React.useEffect(() => {
-		if (formControl !== undefined) defineAria(tag, formControl);
-	}, [tag, formControl]);
+		if (formControl !== undefined) defineAria(Tag, formControl);
+	}, [Tag, formControl]);
 
 	const convertedProps = className ? { class: className } : {};
 
 	return (
-		<CustomElement
+		<Tag
 			ref={forwardedRef}
-			tag={tag}
-			config={config}
 			// @ts-expect-error // name is not recognized on custom elements, but it's fine
 			name={formControl?.name}
 			value={formControl?.value}
@@ -257,22 +249,27 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			{...convertedProps}
 			{...forwardedProps}
 		>
-			<Template shadowrootmode="open" shadowrootdelegatesfocus={true} adoptedStyleSheets={allStyleSheets}>
-				{!hrefsLoaded
-					? /**
-						 * Use preload link to avoid FOUC (when rendered on the server)
-						 * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
-						 */
-						allHrefs.map((href) => (
-							<React.Fragment key={href}>
-								<link rel="preload" href={href} as="style" />
-								<link rel="stylesheet" href={href} />
-							</React.Fragment>
-						))
-					: null}
+			<Template
+				shadowRootMode="open"
+				shadowRootDelegatesFocus={true}
+				shadowRootSerializable={true}
+				adoptedStyleSheets={allStyleSheets}
+			>
+				{
+					/**
+					 * Use preload link to avoid FOUC (when rendered on the server)
+					 * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
+					 */
+					allHrefs.map((href) => (
+						<React.Fragment key={href}>
+							<link rel="preload" href={href} as="style" />
+							<link rel="stylesheet" href={href} />
+						</React.Fragment>
+					))
+				}
 				{children}
 			</Template>
 			{slottedContent}
-		</CustomElement>
+		</Tag>
 	);
 });

@@ -1,5 +1,4 @@
 'use client';
-import { type ShadowScopeConfig } from './context';
 import { type StyleSheet, css } from './css-utils';
 import { Scope } from './scope';
 import * as React from 'react';
@@ -31,10 +30,6 @@ export type TailwindProps = React.PropsWithChildren<{
 	 * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
 	 */
 	slottedContent?: React.ReactNode;
-	/**
-	 * Configure this instance of `<Tailwind>`. (Overrides `ShadowScopeConfigProvider`)
-	 */
-	config?: ShadowScopeConfig;
 }>;
 
 /**
@@ -62,7 +57,6 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>((props, for
 				visibility: hidden;
 			}
 		`,
-		config,
 		...forwardedProps
 	} = props;
 
@@ -81,7 +75,6 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>((props, for
 			hrefs={[]}
 			pendingStyles={pendingStyles}
 			normalize={false}
-			config={config}
 			slottedContent={slottedContent}
 			__transform={transformForTailwind}
 		>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, CustomElement, css } from 'react-shadow-scope';
+import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, css } from 'react-shadow-scope';
 
 declare global {
 	namespace ReactShadowScope {
@@ -63,29 +63,29 @@ export default function Demo() {
 
 			{/* prettier-ignore */}
 			<Scope tag="my-element" stylesheet={css`p { color: ${test ? 'green' : 'blue'}; font-family: sans-serif; }`}>
-        <p>This scope solves the problem though!</p>
-        <p>
-          This &lt;p&gt; tag does not inherit the bold font from outside. The
-          green color is not a cascading override either, all you have is a
-          browser default in this scope.
-        </p>
-        <p>
-          The tag name is directly selected in this scope again, but it's not a
-          big deal because this is *encapsulated*.
-        </p>
-        <Scope>
-          <p>
-            This is a nested scope with no styles of its own. Look at that, it
-            still inherits nothing! Browser defaults. No cascade problems.
-          </p>
-        </Scope>
-      </Scope>
+				<p>This scope solves the problem though!</p>
+				<p>
+					This &lt;p&gt; tag does not inherit the bold font from outside. The
+					green color is not a cascading override either, all you have is a
+					browser default in this scope.
+				</p>
+				<p>
+					The tag name is directly selected in this scope again, but it's not a
+					big deal because this is *encapsulated*.
+				</p>
+				<Scope>
+					<p>
+						This is a nested scope with no styles of its own. Look at that, it
+						still inherits nothing! Browser defaults. No cascade problems.
+					</p>
+				</Scope>
+			</Scope>
 			<p>The global scope doesn't inherit the green style from inside either.</p>
 
 			<h2>Prefer more fine-grained control?</h2>
 
-			<CustomElement tag="card-element">
-				<Template shadowrootmode="closed" adoptedStyleSheets={[staticStyles]}>
+			<card-element>
+				<Template shadowRootMode="closed" adoptedStyleSheets={[staticStyles]}>
 					<article>
 						<header>
 							<h3>
@@ -106,7 +106,7 @@ export default function Demo() {
 					This card was rendered using the traditional declarative shadow DOM approach. Not everyone is a fan, but it's
 					nice to expose optional complexity for greater flexibility and control.
 				</p>
-			</CustomElement>
+			</card-element>
 
 			<Scope href="/styles.css">
 				<p className="info">These styles were fetched with the `href` prop.</p>

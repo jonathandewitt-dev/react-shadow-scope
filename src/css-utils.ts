@@ -13,8 +13,9 @@ export const isCSSStyleSheet = (stylesheet?: StyleSheet): stylesheet is CSSStyle
 const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unknown[]) => {
 	return strArr.reduce((resultStr, currentStr, i) => {
 		const _value = interpolated[i];
-		const value = typeof _value === 'object' ? '' : _value;
-		return resultStr + currentStr + String(value);
+		const isInvalid = typeof _value === 'object' || _value === null || typeof _value === 'undefined';
+		const value = isInvalid ? '' : String(_value as unknown);
+		return resultStr + currentStr + value;
 	}, '');
 };
 
