@@ -16,7 +16,8 @@
 		"demo": "cd demo/react && rm -rf node_modules && npm i && npm start",
 		"demo:next": "cd demo/next && rm -rf node_modules && npm i && npm start",
 		"build": "tsup src/index.ts --format cjs,esm --dts --no-clean",
-		"lint": "tsc"
+		"lint": "tsc",
+		"upgrade:react": "npm i react@latest react-dom@latest @types/react@latest @types/react-dom@latest -D"
 	},
 	"repository": {
 		"type": "git",
@@ -40,21 +41,21 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.16.0",
-		"@types/react": "^18.2.6",
-		"@types/react-dom": "^18.2.4",
+		"@types/react": "^19.0.1",
+		"@types/react-dom": "^19.0.2",
 		"@typescript-eslint/eslint-plugin": "^8.17.0",
 		"@typescript-eslint/parser": "^8.17.0",
 		"eslint": "^9.16.0",
 		"express": "^4.18.2",
 		"globals": "^15.13.0",
 		"prettier": "^3.4.2",
-		"react": "^16.8.3 || ^18",
-		"react-dom": "^16.14.0 || ^18",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"tsup": "^8.3.0",
 		"typescript": "^5.6.3"
 	},
 	"peerDependencies": {
-		"react": "^16.8.3 || ^18",
-		"react-dom": "^16.14.0 || ^18"
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
 	}
 }

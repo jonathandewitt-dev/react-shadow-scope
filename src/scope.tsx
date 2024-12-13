@@ -17,6 +17,8 @@ declare global {
 			'react-shadow-scope': CustomIntrinsicElement;
 		}
 	}
+}
+declare module 'react' {
 	namespace JSX {
 		interface IntrinsicElements extends ReactShadowScope.CustomElements {}
 	}
@@ -242,10 +244,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 
 	return (
 		<CustomElement
-			// @ts-expect-error // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
 			ref={forwardedRef}
 			tag={tag}
 			config={config}
+			// @ts-expect-error // name is not recognized on custom elements, but it's fine
 			name={formControl?.name}
 			value={formControl?.value}
 			disabled={formControl?.disabled}
@@ -255,21 +257,19 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			{...convertedProps}
 			{...forwardedProps}
 		>
-			<Template shadowrootmode="open" delegatesFocus={true} adoptedStyleSheets={allStyleSheets}>
-				{!hrefsLoaded ? (
-					/**
-					 * Use preload link to avoid FOUC (when rendered on the server)
-					 * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
-					 */
-					allHrefs.map((href) => (
-						<React.Fragment key={href}>
-							<link rel="preload" href={href} as="style" />
-							<link rel="stylesheet" href={href} />
-						</React.Fragment>
-					))
-				) : (
-					<></>
-				)}
+			<Template shadowrootmode="open" shadowrootdelegatesfocus={true} adoptedStyleSheets={allStyleSheets}>
+				{!hrefsLoaded
+					? /**
+						 * Use preload link to avoid FOUC (when rendered on the server)
+						 * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
+						 */
+						allHrefs.map((href) => (
+							<React.Fragment key={href}>
+								<link rel="preload" href={href} as="style" />
+								<link rel="stylesheet" href={href} />
+							</React.Fragment>
+						))
+					: null}
 				{children}
 			</Template>
 			{slottedContent}
