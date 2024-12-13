@@ -1,16 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-	Scope,
-	useCSS,
-	Template,
-	Tailwind,
-	CustomIntrinsicElement,
-	ShadowScopeConfigProvider,
-	CustomElement,
-	css,
-} from 'react-shadow-scope';
+import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, CustomElement, css } from 'react-shadow-scope';
 
 declare global {
 	namespace ReactShadowScope {
