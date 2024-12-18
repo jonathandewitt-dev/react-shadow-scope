@@ -239,7 +239,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	return (
 		<Tag
 			ref={forwardedRef}
-			// @ts-expect-error // name is not recognized on custom elements, but it's fine
+			// @ts-expect-error // name is not recognized on custom elements, but it's required for form controls
 			name={formControl?.name}
 			value={formControl?.value}
 			disabled={formControl?.disabled}

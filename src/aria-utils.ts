@@ -53,7 +53,7 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 	if (customElements.get(tag) !== undefined) return;
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
-		static observedAttributes = ['value'];
+		static observedAttributes = ['value', 'disabled', 'required', 'readonly', 'placeholder'];
 		#internals = this.attachInternals();
 
 		#value: FormControlValue = null;
@@ -128,7 +128,12 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
+			const bool = newValue === 'true' || newValue === '';
 			if (name === 'value') this.value = newValue;
+			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
+			if (name === 'required') this.#internals.ariaRequired = String(bool);
+			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
+			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
 		}
 
 		#updateValidity() {
