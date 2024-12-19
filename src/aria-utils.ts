@@ -138,10 +138,8 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 
 		#updateValidity() {
 			if (formControl.is === 'button') return;
-			setTimeout(() => {
-				const input = this.shadowRoot?.querySelector(formControl.is) ?? document.createElement(formControl.is);
-				this.#internals.setValidity(input.validity, input.validationMessage, input);
-			}, 100);
+			const input = this.shadowRoot?.querySelector(formControl.is) ?? document.createElement(formControl.is);
+			this.#internals.setValidity(input.validity, input.validationMessage, input);
 		}
 
 		get validity(): ValidityState {
