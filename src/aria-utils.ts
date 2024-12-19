@@ -64,8 +64,8 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 			this.#value = newValue;
 			this.#internals.setFormValue(newValue);
 			this.setAttribute('value', String(typeof newValue === 'object' ? '' : (newValue ?? '')));
-			this.#updateValidity();
 			requestAnimationFrame(() => {
+				this.#updateValidity();
 				this.#busy = false;
 			});
 		}
@@ -138,7 +138,8 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 
 		#updateValidity() {
 			if (formControl.is === 'button') return;
-			const input = this.shadowRoot?.querySelector(formControl.is) ?? document.createElement(formControl.is);
+			const input = this.shadowRoot?.querySelector(formControl.is) ?? null;
+			if (input === null) return;
 			this.#internals.setValidity(input.validity, input.validationMessage, input);
 		}
 
