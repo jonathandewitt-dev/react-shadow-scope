@@ -57,7 +57,7 @@ export const useCSS = (key?: symbol) => {
 		if (existingStylesheet) {
 			const styles = getTaggedTemplateStr(strArr, ...interpolated);
 			if (isCSSStyleSheet(existingStylesheet)) {
-				existingStylesheet.replace(styles).catch(console.error);
+				existingStylesheet.replaceSync(styles);
 				return existingStylesheet;
 			}
 			stylesheetMap.set(symbol, styles);
