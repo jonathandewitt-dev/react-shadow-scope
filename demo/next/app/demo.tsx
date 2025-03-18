@@ -169,8 +169,6 @@ export default function Demo() {
 						}}
 					/>
 				</Scope>
-				<input type="radio" name="test-radio" value="test-one" />
-				<input type="radio" name="test-radio" value="test-two" />
 				<Scope tag="my-button" formControl={{ is: 'button', type: 'submit' }}>
 					<button>Submit</button>
 				</Scope>

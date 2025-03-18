@@ -2,7 +2,7 @@
 import React from 'react';
 import { type StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
-import { defineAria, type FormControlValue, type FormControl } from './aria-utils';
+import { type FormControlValue, type FormControl, getFormControlElement } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
 	class?: string;
@@ -230,9 +230,26 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		};
 	}, [pending, localStyleText]);
 
+	const tagRef = React.useRef(null);
+
 	React.useEffect(() => {
-		if (formControl !== undefined) defineAria(Tag, formControl);
-	}, [Tag, formControl]);
+		// Synchronize internal template ref with the forwarded ref
+		if (typeof forwardedRef === 'function') {
+			forwardedRef(tagRef.current);
+		} else if (forwardedRef && typeof forwardedRef === 'object') {
+			(forwardedRef as React.RefObject<unknown>).current = tagRef.current;
+		}
+	}, []);
+
+	React.useLayoutEffect(() => {
+		class FormControlElement extends getFormControlElement() {}
+		if (formControl === undefined) return;
+		if (customElements.get(Tag) === undefined) {
+			customElements.define(Tag, FormControlElement);
+		}
+		if (tagRef.current === null) return;
+		(tagRef.current as FormControlElement).formControl = formControl;
+	}, [Tag, JSON.stringify(formControl)]);
 
 	const [value, setValue] = React.useState<FormControlValue>(formControl?.value ?? null);
 	const formControlValue = formControl?.value ?? null;
@@ -251,7 +268,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 
 	return (
 		<Tag
-			ref={forwardedRef}
+			ref={tagRef}
 			// @ts-expect-error // name is not recognized on custom elements, but it's required for form controls
 			name={formControl?.name}
 			value={value}
