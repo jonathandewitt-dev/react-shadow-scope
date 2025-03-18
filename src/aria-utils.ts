@@ -86,7 +86,6 @@ const DEFAULT_FORM_CONTROL: FormControl = {
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
-		static observedAttributes = ['value', 'checked', 'disabled', 'required', 'readonly', 'placeholder'];
 		#internals = this.attachInternals();
 		#formControl: FormControl = DEFAULT_FORM_CONTROL;
 
@@ -145,6 +144,34 @@ export const getFormControlElement = () =>
 		}
 		get checked() {
 			return this.#internals.ariaChecked === 'true';
+		}
+
+		set required(newValue: boolean) {
+			this.#internals.ariaRequired = String(newValue);
+		}
+		get required() {
+			return this.#internals.ariaRequired === 'true';
+		}
+
+		set disabled(newValue: boolean) {
+			this.#internals.ariaDisabled = String(newValue);
+		}
+		get disabled() {
+			return this.#internals.ariaDisabled === 'true';
+		}
+
+		set readOnly(newValue: boolean) {
+			this.#internals.ariaReadOnly = String(newValue);
+		}
+		get readOnly() {
+			return this.#internals.ariaReadOnly === 'true';
+		}
+
+		set placeholder(newValue: string | null) {
+			this.#internals.ariaPlaceholder = newValue;
+		}
+		get placeholder() {
+			return this.#internals.ariaPlaceholder;
 		}
 
 		#handleClick = (() => {
@@ -230,25 +257,6 @@ export const getFormControlElement = () =>
 			}
 		}
 
-		connectedCallback() {
-			this.#initInternals();
-		}
-
-		disconnectedCallback() {
-			this.#resetInternals();
-		}
-
-		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
-			if (oldValue === newValue) return;
-			const bool = newValue === 'true' || newValue === '';
-			if (name === 'value') this.value = newValue;
-			if (name === 'checked') this.checked = bool;
-			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
-			if (name === 'required') this.#internals.ariaRequired = String(bool);
-			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
-			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
-		}
-
 		get #input(): HTMLFormControlElement | null {
 			if (this.#formControl.is === 'button') return null;
 			const tagnameMap = {
@@ -288,5 +296,26 @@ export const getFormControlElement = () =>
 
 		formDisabledCallback(disabled: boolean) {
 			this.#internals.ariaDisabled = String(disabled);
+		}
+
+		connectedCallback() {
+			this.#initInternals();
+		}
+
+		disconnectedCallback() {
+			this.#resetInternals();
+		}
+
+		static observedAttributes = ['value', 'checked', 'disabled', 'required', 'readonly', 'placeholder'];
+
+		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
+			if (oldValue === newValue) return;
+			const bool = newValue === 'true' || newValue === '';
+			if (name === 'value') this.value = newValue;
+			if (name === 'checked') this.checked = bool;
+			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
+			if (name === 'required') this.#internals.ariaRequired = String(bool);
+			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
+			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
 		}
 	};
