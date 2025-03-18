@@ -2,7 +2,7 @@
 import React from 'react';
 import { type StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
-import { defineAria, type FormControl } from './aria-utils';
+import { defineAria, type FormControlValue, type FormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
 	class?: string;
@@ -234,6 +234,19 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		if (formControl !== undefined) defineAria(Tag, formControl);
 	}, [Tag, formControl]);
 
+	const [value, setValue] = React.useState<FormControlValue>(formControl?.value ?? null);
+	const formControlValue = formControl?.value ?? null;
+	React.useEffect(() => {
+		setValue(formControlValue);
+	}, [formControlValue]);
+
+	const checkable = formControl?.is === 'checkbox' || formControl?.is === 'radio';
+	const [checked, setChecked] = React.useState<boolean>((checkable && formControl?.checked) ?? false);
+	const formControlChecked = (checkable && formControl?.checked) ?? false;
+	React.useEffect(() => {
+		setChecked(formControlChecked);
+	}, [formControlChecked]);
+
 	const convertedProps = className ? { class: className } : {};
 
 	return (
@@ -241,11 +254,13 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			ref={forwardedRef}
 			// @ts-expect-error // name is not recognized on custom elements, but it's required for form controls
 			name={formControl?.name}
-			value={formControl?.value}
+			value={value}
 			disabled={formControl?.disabled}
 			required={formControl?.is === 'button' ? undefined : formControl?.required}
 			readonly={formControl?.is === 'button' ? undefined : formControl?.readonly}
-			placeholder={formControl?.is === 'button' ? undefined : formControl?.placeholder}
+			placeholder={formControl?.is === 'input' ? formControl.placeholder : undefined}
+			checked={checkable ? (checked ? '' : null) : undefined}
+			defaultChecked={checkable ? formControl.defaultChecked : undefined}
 			{...convertedProps}
 			{...forwardedProps}
 		>

@@ -1,4 +1,4 @@
-type FormControlValue = File | string | FormData | null;
+export type FormControlValue = File | string | FormData | null;
 
 type SharedFormControlProps = {
 	/**
@@ -13,13 +13,6 @@ type SharedFormControlProps = {
 	 * The disabled state of the form control element.
 	 */
 	disabled?: boolean;
-};
-
-type GenericFormControl = SharedFormControlProps & {
-	/**
-	 * The tag name of the form control element to use.
-	 */
-	is: 'input' | 'textarea' | 'select';
 	/**
 	 * The required state of the form control element.
 	 */
@@ -28,15 +21,44 @@ type GenericFormControl = SharedFormControlProps & {
 	 * The readonly state of the form control element.
 	 */
 	readonly?: boolean;
+};
+
+type SimpleFormControl = SharedFormControlProps & {
+	/**
+	 * The form control element to use.
+	 */
+	is: 'hidden' | 'select' | 'textarea';
+};
+
+type TextFormControl = SharedFormControlProps & {
+	/**
+	 * The form control element to use.
+	 */
+	is: 'input';
 	/**
 	 * The placeholder of the form control element.
 	 */
 	placeholder?: string;
 };
 
+type CheckboxFormControl = SharedFormControlProps & {
+	/**
+	 * The form control element to use.
+	 */
+	is: 'checkbox' | 'radio';
+	/**
+	 * The checked state of the input element.
+	 */
+	checked?: boolean;
+	/**
+	 * The default checked state of the input element.
+	 */
+	defaultChecked?: boolean;
+};
+
 type ButtonFormControl = SharedFormControlProps & {
 	/**
-	 * The tag name of the form control element to use.
+	 * The form control element to use.
 	 */
 	is: 'button';
 	/**
@@ -47,23 +69,24 @@ type ButtonFormControl = SharedFormControlProps & {
 	type?: 'button' | 'submit';
 };
 
-export type FormControl = GenericFormControl | ButtonFormControl;
+export type FormControl = TextFormControl | CheckboxFormControl | ButtonFormControl | SimpleFormControl;
 
 export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formControl: FormControl) => {
 	if (customElements.get(tag) !== undefined) return;
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
-		static observedAttributes = ['value', 'disabled', 'required', 'readonly', 'placeholder'];
+		static observedAttributes = ['value', 'checked', 'disabled', 'required', 'readonly', 'placeholder'];
 		#internals = this.attachInternals();
 
-		#value: FormControlValue = null;
 		#busy = false;
+
+		#initialValue: FormControlValue = null;
+		#value: FormControlValue = null;
 		set value(newValue: FormControlValue) {
 			if (this.#busy) return;
 			this.#busy = true;
 			this.#value = newValue;
 			this.#internals.setFormValue(newValue);
-			this.setAttribute('value', String(typeof newValue === 'object' ? '' : (newValue ?? '')));
 			requestAnimationFrame(() => {
 				this.#updateValidity();
 				this.#busy = false;
@@ -71,6 +94,40 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 		}
 		get value() {
 			return this.#value;
+		}
+
+		set role(newValue: string | null) {
+			this.#internals.role = newValue;
+		}
+		get role() {
+			return this.#internals.role;
+		}
+
+		#checked = false;
+		set checked(newValue: boolean) {
+			if (this.#busy) return;
+			this.#busy = true;
+			if (formControl.is === 'radio') {
+				const parent = this.#internals.form ?? document;
+				const radios = parent.querySelectorAll(`[name="${formControl.name}"]`);
+				for (const radio of radios) {
+					if (radio === this) continue;
+					if (radio instanceof HTMLInputElement && this.#internals.form === null && radio.form !== null) continue;
+					if (radio.role === 'radio' || (radio instanceof HTMLInputElement && radio.type === 'radio')) {
+						(radio as FormControlElement).checked = false;
+					}
+				}
+			}
+			this.#checked = newValue;
+			if (newValue) this.setAttribute('checked', '');
+			else this.removeAttribute('checked');
+			requestAnimationFrame(() => {
+				this.#busy = false;
+				this.value = newValue ? (this.#initialValue ?? 'on') : null;
+			});
+		}
+		get checked() {
+			return this.#checked;
 		}
 
 		#handleClick = (() => {
@@ -84,12 +141,17 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 		}).bind(this);
 
 		#handleReset = (() => {
-			this.value = '';
+			this.value = this.#initialValue;
 		}).bind(this);
 
 		connectedCallback() {
 			this.#updateValidity();
 			const { form } = this.#internals;
+			this.#initialValue = formControl.value ?? null;
+			this.#internals.ariaDisabled = String(formControl.disabled);
+			this.#internals.ariaRequired = String(formControl.required);
+			this.#internals.ariaReadOnly = String(formControl.readonly);
+			form?.addEventListener('reset', this.#handleReset);
 			switch (formControl?.is) {
 				case 'button':
 					this.#internals.role = 'button';
@@ -110,14 +172,23 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 					this.#internals.ariaAutoComplete = 'list';
 					this.#internals.ariaMultiSelectable = 'false';
 					break;
+				case 'checkbox':
+					this.#internals.role = 'checkbox';
+					this.#internals.ariaChecked = formControl.checked || formControl.defaultChecked ? 'true' : 'false';
+					this.checked = (formControl.checked ?? false) || (formControl.defaultChecked ?? false);
+					break;
+				case 'radio':
+					this.#internals.role = 'radio';
+					this.#internals.ariaChecked = formControl.checked || formControl.defaultChecked ? 'true' : 'false';
+					this.checked = (formControl.checked ?? false) || (formControl.defaultChecked ?? false);
+					break;
 				case 'textarea':
+					this.#internals.role = 'textbox';
 					this.#internals.ariaMultiLine = 'true';
+					break;
 				case 'input':
 					this.#internals.role = 'textbox';
 					this.#internals.ariaPlaceholder = formControl.placeholder ?? null;
-				default:
-					form?.addEventListener('reset', this.#handleReset);
-					break;
 			}
 		}
 
@@ -130,6 +201,7 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 			if (oldValue === newValue) return;
 			const bool = newValue === 'true' || newValue === '';
 			if (name === 'value') this.value = newValue;
+			if (name === 'checked') this.checked = bool;
 			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
 			if (name === 'required') this.#internals.ariaRequired = String(bool);
 			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
@@ -140,7 +212,8 @@ export const defineAria = (tag: keyof ReactShadowScope.CustomElements, formContr
 			if (formControl.is === 'button') return;
 			const input = this.shadowRoot?.querySelector(formControl.is) ?? null;
 			if (input === null) return;
-			this.#internals.setValidity(input.validity, input.validationMessage, input);
+			const _input = input as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+			this.#internals.setValidity(_input.validity, _input.validationMessage, _input);
 		}
 
 		get validity(): ValidityState {

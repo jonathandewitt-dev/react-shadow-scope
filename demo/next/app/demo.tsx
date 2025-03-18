@@ -11,6 +11,8 @@ declare global {
 			'my-input': CustomIntrinsicElement;
 			'my-button': CustomIntrinsicElement;
 			'my-select': CustomIntrinsicElement;
+			'my-checkbox': CustomIntrinsicElement;
+			'my-radio': CustomIntrinsicElement;
 		}
 	}
 }
@@ -48,6 +50,8 @@ export default function Demo() {
 	const [test, setTest] = useState(false);
 	const [value, setValue] = useState('');
 	const [selected, setSelected] = useState('');
+	const [checked, setChecked] = useState(false);
+	const [radio, setRadio] = useState<string | null>(null);
 	useEffect(() => {
 		setTimeout(() => void setTest(true), 1000);
 	}, []);
@@ -139,6 +143,34 @@ export default function Demo() {
 						<option value="3">Three</option>
 					</select>
 				</Scope>
+				<Scope tag="my-checkbox" formControl={{ is: 'checkbox', value: 'checked', checked, name: 'my-checkbox' }}>
+					<input
+						type="checkbox"
+						onChange={(event) => {
+							setChecked(event.target.checked);
+						}}
+					/>
+				</Scope>
+				<Scope tag="my-radio" formControl={{ is: 'radio', value: 'one', checked: radio === 'one', name: 'my-radio' }}>
+					<input
+						type="radio"
+						checked={radio === 'one'}
+						onChange={() => {
+							setRadio('one');
+						}}
+					/>
+				</Scope>
+				<Scope tag="my-radio" formControl={{ is: 'radio', value: 'two', checked: radio === 'two', name: 'my-radio' }}>
+					<input
+						type="radio"
+						checked={radio === 'two'}
+						onChange={() => {
+							setRadio('two');
+						}}
+					/>
+				</Scope>
+				<input type="radio" name="test-radio" value="test-one" />
+				<input type="radio" name="test-radio" value="test-two" />
 				<Scope tag="my-button" formControl={{ is: 'button', type: 'submit' }}>
 					<button>Submit</button>
 				</Scope>
