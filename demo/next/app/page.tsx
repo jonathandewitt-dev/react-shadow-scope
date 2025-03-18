@@ -1,4 +1,4 @@
-import { ShadowScopeConfigProvider } from '../../../dist';
+import { ShadowScopeConfigProvider } from 'react-shadow-scope';
 import Demo from './demo';
 
 export default function Home() {
