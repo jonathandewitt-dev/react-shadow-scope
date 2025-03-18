@@ -16,7 +16,7 @@ const compat = new FlatCompat({
 
 export default [
 	{
-		ignores: ['**/demo', '**/dist', '**/vendor', '**/www', '**/*.ejs', '**/**config.js', '**/**config.ts'],
+		ignores: ['**/demo', '**/dist', '**/vendor', '**/www', '**/*.ejs', '**/**config.*'],
 	},
 	...compat.extends(
 		'plugin:@typescript-eslint/recommended-type-checked',

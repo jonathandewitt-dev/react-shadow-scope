@@ -16,7 +16,7 @@
 		"demo": "cd demo/react && rm -rf node_modules && npm i && npm start",
 		"demo:next": "cd demo/next && rm -rf node_modules && npm i && npm start",
 		"build": "tsup src/index.ts --format cjs,esm --dts --no-clean",
-		"lint": "tsc",
+		"lint": "tsc --noEmit && eslint .",
 		"upgrade:react": "npm i react@latest react-dom@latest @types/react@latest @types/react-dom@latest -D"
 	},
 	"repository": {
