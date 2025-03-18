@@ -1,4 +1,4 @@
-type FormControlValue = File | string | FormData | null;
+export type FormControlValue = File | string | FormData | null;
 
 type SharedFormControlProps = {
 	/**

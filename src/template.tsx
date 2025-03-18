@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import { StyleSheet, isCSSStyleSheet } from './css-utils';
 import { ShadowScopeConfig, ShadowScopeContext } from './context';
 import { parseSlots } from './children-utils';
+import { FormControlValue } from './aria-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
 let declarativeShadowDOMSupported: boolean | null = null;
@@ -276,6 +277,30 @@ type CustomElementProps = React.PropsWithChildren<
      * Configure this instance of `<CustomElement>`. (Overrides `ShadowScopeConfigProvider`)
      */
     config?: ShadowScopeConfig;
+    /**
+     * The name, typically used for form controls.
+     */
+    name?: string;
+    /**
+     * The value, typically used for form controls.
+     */
+    value?: FormControlValue;
+    /**
+     * The disabled state, typically used for form controls.
+     */
+    disabled?: boolean;
+    /**
+     * The required state, typically used for form controls.
+     */
+    required?: boolean;
+    /**
+     * The readonly state, typically used for form controls.
+     */
+    readonly?: boolean;
+    /**
+     * The placeholder, typically used for form controls.
+     */
+    placeholder?: string;
   } & React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLElement>,
     HTMLElement
