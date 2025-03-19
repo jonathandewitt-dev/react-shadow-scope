@@ -297,7 +297,8 @@ export const getFormControlElement = () =>
 		}
 
 		setCustomValidity(message: string) {
-			this.#internals.setValidity({ customError: true }, message, this.#input);
+			const validity = this.#input?.validity ?? {};
+			this.#internals.setValidity({ ...validity, customError: true }, message, this.#input);
 		}
 
 		checkValidity() {
