@@ -257,8 +257,8 @@ export const getFormControlElement = () =>
 			}
 		}
 
-		get #input(): HTMLFormControlElement | null {
-			if (this.#formControl.is === 'button') return null;
+		get #input(): HTMLFormControlElement | undefined {
+			if (this.#formControl.is === 'button') return;
 			const tagnameMap = {
 				input: 'input',
 				checkbox: 'input',
@@ -269,20 +269,22 @@ export const getFormControlElement = () =>
 				button: 'button',
 			} as const;
 			const tagname = tagnameMap[this.#formControl.is];
-			return this.shadowRoot?.querySelector(tagname) ?? null;
+			return this.shadowRoot?.querySelector(tagname) ?? undefined;
 		}
 
 		#updateValidity() {
 			const input = this.#input;
-			if (input === null) {
-				this.#internals.setValidity(
-					{
-						valueMissing: this.#internals.ariaRequired === 'true' && !this.#value,
-					},
-					'Please fill out this field.',
-				);
+			const empty = this.#value === null || this.#value === '';
+			const valueMissing = this.#internals.ariaRequired === 'true' && empty;
+			const MISSING_MESSAGE = 'Please fill out this field.';
+			if (input === undefined) {
+				this.#internals.setValidity({ valueMissing }, MISSING_MESSAGE);
 			} else {
-				this.#internals.setValidity(input.validity, input.validationMessage, input);
+				this.#internals.setValidity(
+					{ ...input.validity, valueMissing },
+					valueMissing ? MISSING_MESSAGE : input.validationMessage,
+					input,
+				);
 			}
 		}
 
@@ -292,6 +294,10 @@ export const getFormControlElement = () =>
 
 		get validationMessage(): string {
 			return this.#internals.validationMessage;
+		}
+
+		setCustomValidity(message: string) {
+			this.#internals.setValidity({ customError: true }, message, this.#input);
 		}
 
 		checkValidity() {

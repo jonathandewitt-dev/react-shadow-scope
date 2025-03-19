@@ -157,7 +157,7 @@ export default function Demo() {
 				>
 					<div contentEditable onInput={(event) => setValue2(event.currentTarget.textContent ?? '')}></div>
 				</Scope>
-				<Scope tag="my-select" formControl={{ is: 'select', value: selected, name: 'my-select' }}>
+				<Scope tag="my-select" formControl={{ is: 'select', value: selected, name: 'my-select', required: true }}>
 					<select onChange={(event) => setSelected(event.currentTarget.value)}>
 						<option></option>
 						<option value="1">One</option>
