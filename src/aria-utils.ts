@@ -207,12 +207,12 @@ export const getFormControlElement = () =>
 
 		#initInternals() {
 			this.#resetInternals();
-			this.#updateValidity();
 			const { form } = this.#internals;
 			this.#initialValue = this.#formControl.value ?? null;
-			this.#internals.ariaDisabled = String(this.#formControl.disabled);
-			this.#internals.ariaRequired = String(this.#formControl.required);
-			this.#internals.ariaReadOnly = String(this.#formControl.readonly);
+			this.#internals.ariaDisabled = String(this.#formControl.disabled ?? false);
+			this.#internals.ariaRequired = String(this.#formControl.required ?? false);
+			this.#internals.ariaReadOnly = String(this.#formControl.readonly ?? false);
+			this.#updateValidity();
 			form?.addEventListener('reset', this.#handleReset);
 			switch (this.#formControl?.is) {
 				case 'button':
@@ -274,8 +274,16 @@ export const getFormControlElement = () =>
 
 		#updateValidity() {
 			const input = this.#input;
-			if (input === null) return;
-			this.#internals.setValidity(input.validity, input.validationMessage, input);
+			if (input === null) {
+				this.#internals.setValidity(
+					{
+						valueMissing: this.#internals.ariaRequired === 'true' && !this.#value,
+					},
+					'Please fill out this field.',
+				);
+			} else {
+				this.#internals.setValidity(input.validity, input.validationMessage, input);
+			}
 		}
 
 		get validity(): ValidityState {

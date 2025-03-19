@@ -9,6 +9,7 @@ declare global {
 			'my-element': CustomIntrinsicElement;
 			'card-element': CustomIntrinsicElement;
 			'my-input': CustomIntrinsicElement;
+			'my-custom-input': CustomIntrinsicElement;
 			'my-button': CustomIntrinsicElement;
 			'my-select': CustomIntrinsicElement;
 			'my-checkbox': CustomIntrinsicElement;
@@ -44,11 +45,14 @@ const staticStyles = css`
 `;
 
 const key = Symbol();
+const key2 = Symbol();
 
 export default function Demo() {
 	const css = useCSS(key);
+	const css2 = useCSS(key2);
 	const [test, setTest] = useState(false);
 	const [value, setValue] = useState('');
+	const [value2, setValue2] = useState('');
 	const [selected, setSelected] = useState('');
 	const [checked, setChecked] = useState(false);
 	const [radio, setRadio] = useState<string | null>(null);
@@ -135,7 +139,25 @@ export default function Demo() {
 				<Scope tag="my-input" formControl={{ is: 'input', value, name: 'my-input' }}>
 					<input onChange={(event) => setValue(event.currentTarget.value)} required />
 				</Scope>
-				<Scope tag="my-select" formControl={{ is: 'select', value: selected, required: true, name: 'my-select' }}>
+				<Scope
+					tag="my-custom-input"
+					formControl={{ is: 'input', value: value2, name: 'my-custom-input', required: true }}
+					stylesheet={css2`
+						:host {
+							display: inline-block;
+							width: 10rem;
+							background-color: lightblue;
+							overflow: hidden;
+						}
+						div {
+							padding: 0.2rem;
+							white-space: nowrap;
+						}
+					`}
+				>
+					<div contentEditable onInput={(event) => setValue2(event.currentTarget.textContent ?? '')}></div>
+				</Scope>
+				<Scope tag="my-select" formControl={{ is: 'select', value: selected, name: 'my-select' }}>
 					<select onChange={(event) => setSelected(event.currentTarget.value)}>
 						<option></option>
 						<option value="1">One</option>
