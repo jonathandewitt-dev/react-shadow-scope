@@ -233,7 +233,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	const tagRef = React.useRef(null);
 
 	React.useEffect(() => {
-		// Synchronize internal template ref with the forwarded ref
+		// Synchronize internal tag ref with the forwarded ref
 		if (typeof forwardedRef === 'function') {
 			forwardedRef(tagRef.current);
 		} else if (forwardedRef && typeof forwardedRef === 'object') {
