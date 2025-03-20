@@ -17,6 +17,9 @@
 		"demo:next": "cd demo/next && rm -rf node_modules && npm i && npm start",
 		"build": "tsup src/index.ts --format cjs,esm --dts --no-clean",
 		"lint": "tsc --noEmit && eslint .",
+		"test": "vitest",
+		"test:ui": "vitest --ui",
+		"coverage": "vitest run --coverage",
 		"upgrade:react": "npm i react@latest react-dom@latest @types/react@latest @types/react-dom@latest -D"
 	},
 	"repository": {
@@ -41,18 +44,26 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.2.0",
 		"@eslint/js": "^9.16.0",
+		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/react": "^16.2.0",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/react": "^19.0.1",
 		"@types/react-dom": "^19.0.2",
 		"@typescript-eslint/eslint-plugin": "^8.17.0",
 		"@typescript-eslint/parser": "^8.17.0",
+		"@vitejs/plugin-react": "^4.3.4",
+		"@vitest/ui": "^3.0.9",
 		"eslint": "^9.16.0",
 		"express": "^4.18.2",
 		"globals": "^15.13.0",
+		"happy-dom": "^17.4.4",
+		"jsdom": "^26.0.0",
 		"prettier": "^3.4.2",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"tsup": "^8.3.0",
-		"typescript": "^5.6.3"
+		"typescript": "^5.6.3",
+		"vitest": "^3.0.9"
 	},
 	"peerDependencies": {
 		"react": ">=18.0.0",

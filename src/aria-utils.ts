@@ -266,7 +266,6 @@ export const getFormControlElement = () =>
 				hidden: 'input',
 				textarea: 'textarea',
 				select: 'select',
-				button: 'button',
 			} as const;
 			const tagname = tagnameMap[this.#formControl.is];
 			return this.shadowRoot?.querySelector(tagname) ?? undefined;
