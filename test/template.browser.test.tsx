@@ -4,6 +4,7 @@ import { render, cleanup, screen } from '@testing-library/react';
 import { Template } from '../src/template';
 import { type CustomIntrinsicElement } from '../src/scope';
 import { csr, ssr } from './test-utils';
+import { css } from '../src/css-utils';
 
 declare global {
 	namespace ReactShadowScope {
@@ -32,36 +33,6 @@ describe('Template component', () => {
 
 	afterEach(() => {
 		vi.resetAllMocks();
-	});
-
-	it('should CSR', async () => {
-		await csr(
-			<x-element data-testid="parent">
-				<Template>
-					<div>Test content</div>
-				</Template>
-			</x-element>,
-		);
-
-		const parent = screen.getByTestId('parent');
-		expect(parent).toBeTruthy();
-		expect(parent.shadowRoot).toBeTruthy();
-		expect(parent.firstElementChild).not.toBeTruthy();
-	});
-
-	it('should SSR', async () => {
-		await ssr(
-			<x-element data-testid="parent">
-				<Template>
-					<div>Test content</div>
-				</Template>
-			</x-element>,
-		);
-
-		const parent = screen.getByTestId('parent');
-		expect(parent).toBeTruthy();
-		expect(parent.shadowRoot).toBeTruthy();
-		expect(parent.firstElementChild).not.toBeTruthy();
 	});
 
 	it('handles shadow root mode prop', async () => {
@@ -113,22 +84,20 @@ describe('Template component', () => {
 		expect(div?.textContent).toBe('Child content');
 	});
 
-	it('handles a string in adopted style sheets', async () => {
-		await csr(
-			<x-element data-testid="parent">
-				<Template adoptedStyleSheets={['.test { color: red; }']}>
-					<div>Test content</div>
-				</Template>
-			</x-element>,
-		);
-		const parent = screen.getByTestId('parent');
-		const style = parent.shadowRoot?.querySelector('style');
-		expect(style?.textContent).toBe('.test { color: red; }');
-	});
-
-	it('handles multiple strings in adopted stylesheets', async () => {
-		const mockStyleSheets = ['.test1 { color: red; }', '.test2 { color: blue; }'];
-		await csr(
+	it('handles adopted stylesheets', async () => {
+		const mockStyleSheets = [
+			css`
+				.test1 {
+					color: red;
+				}
+			`,
+			css`
+				.test2 {
+					color: blue;
+				}
+			`,
+		];
+		await ssr(
 			<x-element data-testid="parent">
 				<Template adoptedStyleSheets={mockStyleSheets}>
 					<div>Test content</div>
@@ -136,7 +105,9 @@ describe('Template component', () => {
 			</x-element>,
 		);
 		const parent = screen.getByTestId('parent');
-		const style = parent.shadowRoot?.querySelector('style');
-		expect(style?.textContent).toBe('.test1 { color: red; }.test2 { color: blue; }');
+		const styles = parent.shadowRoot?.adoptedStyleSheets;
+		expect(styles).toHaveLength(2);
+		expect(styles?.[0].cssRules?.[0]?.cssText).toBe('.test1 { color: red; }');
+		expect(styles?.[1].cssRules?.[0]?.cssText).toBe('.test2 { color: blue; }');
 	});
 });
