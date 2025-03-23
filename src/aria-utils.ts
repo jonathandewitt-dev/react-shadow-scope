@@ -99,6 +99,20 @@ export const getFormControlElement = () =>
 
 		#busy = false;
 
+		#name?: string;
+		set name(newValue: string | undefined) {
+			this.#name = newValue;
+			const attr = this.getAttribute('name');
+			if (attr !== null && newValue === undefined) {
+				this.removeAttribute('name');
+			} else if (newValue !== undefined) {
+				this.setAttribute('name', newValue);
+			}
+		}
+		get name(): string | undefined {
+			return this.#name;
+		}
+
 		#initialValue: FormControlValue = null;
 		#value: FormControlValue = null;
 		set value(newValue: FormControlValue) {
@@ -123,8 +137,6 @@ export const getFormControlElement = () =>
 		}
 
 		set checked(newValue: boolean) {
-			if (this.#busy) return;
-			this.#busy = true;
 			if (this.#formControl.is === 'radio') {
 				const parent = this.#internals.form ?? document;
 				const radios = parent.querySelectorAll(`[name="${this.#formControl.name}"]`);
@@ -132,7 +144,9 @@ export const getFormControlElement = () =>
 					if (radio === this) continue;
 					if (radio instanceof HTMLInputElement && this.#internals.form === null && radio.form !== null) continue;
 					if (radio.role === 'radio' || (radio instanceof HTMLInputElement && radio.type === 'radio')) {
-						(radio as FormControlElement).checked = false;
+						if (radio instanceof FormControlElement && radio.checked) {
+							radio.checked = false;
+						}
 					}
 				}
 			}
@@ -145,7 +159,6 @@ export const getFormControlElement = () =>
 				this.#input.checked = newValue;
 			}
 			requestAnimationFrame(() => {
-				this.#busy = false;
 				this.value = newValue ? (this.#initialValue ?? 'on') : null;
 			});
 		}
@@ -216,6 +229,7 @@ export const getFormControlElement = () =>
 			this.#resetInternals();
 			const { form } = this.#internals;
 			this.#initialValue = this.#formControl.value ?? null;
+			this.name = this.#formControl.name;
 			this.#internals.ariaDisabled = String(this.#formControl.disabled ?? false);
 			this.#internals.ariaRequired = String(this.#formControl.required ?? false);
 			this.#internals.ariaReadOnly = String(this.#formControl.readonly ?? false);
@@ -333,6 +347,7 @@ export const getFormControlElement = () =>
 			if (oldValue === newValue) return;
 			const bool = newValue !== null;
 			if (name === 'value') this.value = newValue;
+			if (name === 'name') this.#name = newValue ?? undefined;
 			if (name === 'checked') this.checked = bool;
 			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
 			if (name === 'required') this.#internals.ariaRequired = String(bool);
