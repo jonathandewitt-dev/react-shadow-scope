@@ -137,6 +137,13 @@ export const getFormControlElement = () =>
 				}
 			}
 			this.#internals.ariaChecked = newValue ? 'true' : 'false';
+			if (
+				this.#input !== undefined &&
+				this.#input instanceof HTMLInputElement &&
+				this.#input.type === this.#formControl.is
+			) {
+				this.#input.checked = newValue;
+			}
 			requestAnimationFrame(() => {
 				this.#busy = false;
 				this.value = newValue ? (this.#initialValue ?? 'on') : null;
@@ -324,7 +331,7 @@ export const getFormControlElement = () =>
 
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
-			const bool = newValue === 'true' || newValue === '';
+			const bool = newValue !== null;
 			if (name === 'value') this.value = newValue;
 			if (name === 'checked') this.checked = bool;
 			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);

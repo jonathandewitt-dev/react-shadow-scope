@@ -34,7 +34,6 @@ const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unk
 export const css = (strArr: TemplateStringsArray, ...interpolated: unknown[]): StyleSheet => {
 	const styles = getTaggedTemplateStr(strArr, ...interpolated);
 	if (adoptedStylesSupported()) {
-		console.log('adoptedStylesSupported');
 		const sheet = new CSSStyleSheet();
 		sheet.replaceSync(styles);
 		return sheet;
