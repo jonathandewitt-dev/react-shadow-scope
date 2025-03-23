@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
 import { Template } from '../src/template';
 import { type CustomIntrinsicElement } from '../src/scope';
-import { csr, ssr } from './test-utils';
+import { renderShadow } from './test-utils';
 import { css } from '../src/css-utils';
 
 declare global {
@@ -36,7 +36,7 @@ describe('Template component', () => {
 	});
 
 	it('handles shadow root mode prop', async () => {
-		await csr(
+		await renderShadow(
 			<x-element data-testid="parent">
 				<Template shadowRootMode="open">
 					<div>Test content</div>
@@ -49,7 +49,7 @@ describe('Template component', () => {
 	});
 
 	it('handles shadow root clonable prop', async () => {
-		await csr(
+		await renderShadow(
 			<x-element data-testid="parent">
 				<Template shadowRootClonable={true}>
 					<div>Test content</div>
@@ -72,7 +72,7 @@ describe('Template component', () => {
 	});
 
 	it('renders children correctly', async () => {
-		await csr(
+		await renderShadow(
 			<x-element data-testid="parent">
 				<Template>
 					<div>Child content</div>
@@ -97,7 +97,7 @@ describe('Template component', () => {
 				}
 			`,
 		];
-		await ssr(
+		await renderShadow(
 			<x-element data-testid="parent">
 				<Template adoptedStyleSheets={mockStyleSheets}>
 					<div>Test content</div>

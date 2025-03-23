@@ -6,10 +6,11 @@ export default defineConfig({
 	test: {
 		browser: {
 			enabled: true,
-			name: 'chrome', // or 'firefox', 'safari'
-			provider: 'webdriverio',
 			headless: true,
+			provider: 'playwright',
+			instances: [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }],
 		},
-		include: ['**/*.browser.test.{ts,tsx}'],
+		include: ['**/*.test.{ts,tsx}'],
+		exclude: ['**/node_modules/'],
 	},
 });
