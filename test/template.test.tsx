@@ -14,12 +14,6 @@ declare global {
 	}
 }
 
-declare module 'react' {
-	namespace JSX {
-		interface IntrinsicElements extends ReactShadowScope.CustomElements {}
-	}
-}
-
 describe('Template component', () => {
 	beforeEach(() => {
 		vi.resetModules();
