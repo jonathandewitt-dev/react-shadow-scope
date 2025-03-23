@@ -1,4 +1,4 @@
-export const adoptedStylesSupported: boolean =
+export const adoptedStylesSupported = (): boolean =>
 	typeof window !== 'undefined' &&
 	window.ShadowRoot?.prototype.hasOwnProperty('adoptedStyleSheets') &&
 	window.CSSStyleSheet?.prototype.hasOwnProperty('replace');
@@ -33,7 +33,8 @@ const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unk
  */
 export const css = (strArr: TemplateStringsArray, ...interpolated: unknown[]): StyleSheet => {
 	const styles = getTaggedTemplateStr(strArr, ...interpolated);
-	if (adoptedStylesSupported) {
+	if (adoptedStylesSupported()) {
+		console.log('adoptedStylesSupported');
 		const sheet = new CSSStyleSheet();
 		sheet.replaceSync(styles);
 		return sheet;

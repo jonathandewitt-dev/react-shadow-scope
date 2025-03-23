@@ -168,7 +168,7 @@ const ClientTemplate = React.forwardRef<HTMLTemplateElement, TemplateProps>((pro
 
 	React.useEffect(() => {
 		if (adoptedStyleSheets === undefined || shadowRoot === null) return;
-		if (adoptedStylesSupported) {
+		if (adoptedStylesSupported()) {
 			shadowRoot.adoptedStyleSheets = adoptedStyleSheets as CSSStyleSheet[];
 		} else {
 			const style = document.createElement('style');
