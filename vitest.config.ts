@@ -12,5 +12,9 @@ export default defineConfig({
 		},
 		include: ['**/*.test.{ts,tsx}'],
 		exclude: ['**/node_modules/'],
+		coverage: {
+			provider: 'istanbul',
+			include: ['src/**'],
+		},
 	},
 });
