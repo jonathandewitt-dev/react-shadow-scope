@@ -333,6 +333,16 @@ export const getFormControlElement = () =>
 			this.#internals.ariaDisabled = String(disabled);
 		}
 
+		formResetCallback() {
+			this.#busy = false;
+			if ('defaultChecked' in this.#formControl) {
+				this.checked = this.#formControl.defaultChecked ?? false;
+			} else {
+				this.value = this.#initialValue;
+			}
+			this.#initInternals();
+		}
+
 		connectedCallback() {
 			this.#initInternals();
 		}
