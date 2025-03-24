@@ -80,7 +80,6 @@ const DEFAULT_FORM_CONTROL: FormControl = {
 	disabled: false,
 	required: false,
 	readonly: false,
-	placeholder: '',
 };
 
 export const getFormControlElement = () =>
@@ -120,8 +119,8 @@ export const getFormControlElement = () =>
 			this.#busy = true;
 			this.#value = newValue;
 			this.#internals.setFormValue(newValue);
-			requestAnimationFrame(() => {
-				this.#updateValidity();
+			this.#updateValidity();
+			queueMicrotask(() => {
 				this.#busy = false;
 			});
 		}
@@ -158,7 +157,7 @@ export const getFormControlElement = () =>
 			) {
 				this.#input.checked = newValue;
 			}
-			requestAnimationFrame(() => {
+			queueMicrotask(() => {
 				this.value = newValue ? (this.#initialValue ?? 'on') : null;
 			});
 		}
@@ -168,6 +167,7 @@ export const getFormControlElement = () =>
 
 		set required(newValue: boolean) {
 			this.#internals.ariaRequired = String(newValue);
+			this.#updateValidity();
 		}
 		get required() {
 			return this.#internals.ariaRequired === 'true';
@@ -223,6 +223,10 @@ export const getFormControlElement = () =>
 			this.#internals.ariaPlaceholder = null;
 			this.#internals.form?.removeEventListener('keydown', this.#handleEnter);
 			this.#internals.form?.removeEventListener('reset', this.#handleReset);
+		}
+
+		peekInternals() {
+			return this.#internals;
 		}
 
 		#initInternals() {
@@ -318,7 +322,7 @@ export const getFormControlElement = () =>
 
 		setCustomValidity(message: string) {
 			const validity = this.#input?.validity ?? {};
-			this.#internals.setValidity({ ...validity, customError: true }, message, this.#input);
+			this.#internals.setValidity({ ...validity, customError: message !== '' }, message, this.#input);
 		}
 
 		checkValidity() {
@@ -327,10 +331,6 @@ export const getFormControlElement = () =>
 
 		reportValidity() {
 			return this.#internals.reportValidity();
-		}
-
-		formDisabledCallback(disabled: boolean) {
-			this.#internals.ariaDisabled = String(disabled);
 		}
 
 		formResetCallback() {
@@ -351,7 +351,7 @@ export const getFormControlElement = () =>
 			this.#resetInternals();
 		}
 
-		static observedAttributes = ['value', 'checked', 'disabled', 'required', 'readonly', 'placeholder'];
+		static observedAttributes = ['value', 'name', 'checked', 'disabled', 'required', 'readonly', 'placeholder', 'role'];
 
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
@@ -363,5 +363,6 @@ export const getFormControlElement = () =>
 			if (name === 'required') this.#internals.ariaRequired = String(bool);
 			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
 			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
+			if (name === 'role') this.role = newValue;
 		}
 	};
