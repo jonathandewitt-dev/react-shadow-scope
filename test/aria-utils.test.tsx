@@ -26,8 +26,19 @@ describe('Form Control Element', () => {
 				disabled: false,
 				required: false,
 				readonly: false,
-				placeholder: '',
 			});
+		});
+
+		it('updates internals', () => {
+			element.placeholder = 'test';
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('textbox');
+			expect(internals.ariaPlaceholder).toBe('test');
+		});
+
+		it('updates formControl correctly', () => {
+			element.formControl = { is: 'button' };
+			expect(element.formControl.is).toBe('button');
 		});
 
 		it('updates value correctly', () => {
@@ -45,6 +56,19 @@ describe('Form Control Element', () => {
 			expect(element.name).toBe('test');
 		});
 
+		it('updates role correctly', () => {
+			element.role = 'button';
+			expect(element.role).toBe('button');
+		});
+
+		it('gets readonly copy of internals', () => {
+			const internals = element.peekInternals();
+			expect(element.ariaPressed).toBe(null);
+			expect(internals.ariaPressed).toBe(null);
+			internals.ariaPressed = 'true';
+			expect(element.ariaPressed).toBe(null);
+		});
+
 		it('handles disabled state', () => {
 			element.disabled = true;
 			expect(element.disabled).toBe(true);
@@ -59,6 +83,44 @@ describe('Form Control Element', () => {
 			element.readOnly = true;
 			expect(element.readOnly).toBe(true);
 		});
+
+		const expectValidity = (valid: boolean, element: FormControlElement) => {
+			expect(element.validity.valid).toBe(valid);
+			expect(element.checkValidity()).toBe(valid);
+			expect(element.reportValidity()).toBe(valid);
+		};
+
+		it('updates validity', () => {
+			expect(element.validity.valid).toBe(true);
+			element.setCustomValidity('test');
+			expect(element.validationMessage).toBe('test');
+			expect(element.validity.customError).toBe(true);
+			expectValidity(false, element);
+			element.setCustomValidity('');
+			expect(element.validationMessage).toBe('');
+			expect(element.validity.customError).toBe(false);
+			expectValidity(true, element);
+			element.required = true;
+			expect(element.validity.valueMissing).toBe(true);
+			expectValidity(false, element);
+			element.value = 'test';
+			expect(element.validity.valueMissing).toBe(false);
+			expectValidity(true, element);
+		});
+	});
+
+	describe('Select behavior', () => {
+		beforeEach(() => {
+			element.formControl = { is: 'select' };
+		});
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('combobox');
+			expect(internals.ariaExpanded).toBe('false');
+			expect(internals.ariaHasPopup).toBe('listbox');
+			expect(internals.ariaAutoComplete).toBe('list');
+			expect(internals.ariaMultiSelectable).toBe('false');
+		});
 	});
 
 	describe('Checkbox behavior', () => {
@@ -69,9 +131,23 @@ describe('Form Control Element', () => {
 			};
 		});
 
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('checkbox');
+			expect(internals.ariaChecked).toBe('false');
+		});
+
 		it('handles checked state', () => {
 			element.checked = true;
 			expect(element.checked).toBe(true);
+		});
+
+		it('handles inner checkbox', () => {
+			const innerCheckbox = document.createElement('input');
+			innerCheckbox.type = 'checkbox';
+			element.shadowRoot?.appendChild(innerCheckbox);
+			element.checked = true;
+			expect(innerCheckbox.checked).toBe(true);
 		});
 
 		it('sets default checked state', () => {
@@ -88,16 +164,22 @@ describe('Form Control Element', () => {
 		let element3: FormControlElement;
 
 		beforeEach(() => {
-			element2 = document.createElement('form-control') as FormControlElement;
-			element3 = document.createElement('form-control') as FormControlElement;
-			document.body.appendChild(element2);
-			document.body.appendChild(element3);
 			element.formControl = {
 				is: 'radio',
 				name: 'test-radio',
 			};
+			element2 = document.createElement('form-control') as FormControlElement;
+			element3 = document.createElement('form-control') as FormControlElement;
+			document.body.appendChild(element2);
+			document.body.appendChild(element3);
 			element2.formControl = { ...element.formControl };
 			element3.formControl = { ...element.formControl };
+		});
+
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('radio');
+			expect(internals.ariaChecked).toBe('false');
 		});
 
 		it('unchecks other radio buttons in same group', () => {
@@ -111,6 +193,26 @@ describe('Form Control Element', () => {
 
 			element2.remove();
 			element3.remove();
+		});
+
+		it('handles inner radio', () => {
+			const innerRadio = document.createElement('input');
+			innerRadio.type = 'radio';
+			element.shadowRoot?.appendChild(innerRadio);
+			element.checked = true;
+			expect(innerRadio.checked).toBe(true);
+		});
+	});
+
+	describe('Textarea behavior', () => {
+		beforeEach(() => {
+			element.formControl = { is: 'textarea' };
+		});
+
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('textbox');
+			expect(internals.ariaMultiLine).toBe('true');
 		});
 	});
 
@@ -128,10 +230,21 @@ describe('Form Control Element', () => {
 			document.body.appendChild(form);
 		});
 
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('button');
+		});
+
+		it('handles mouse events', () => {
+			element.dispatchEvent(new MouseEvent('mousedown'));
+			expect(element.peekInternals().ariaPressed).toBe('true');
+			element.dispatchEvent(new MouseEvent('mouseup'));
+			expect(element.peekInternals().ariaPressed).toBe('false');
+		});
+
 		it('handles click events', () => {
 			const mockSubmit = vi.fn().mockImplementation(onSubmit);
 			form.addEventListener('submit', mockSubmit);
-
 			element.click();
 			expect(mockSubmit).toHaveBeenCalled();
 			form.removeEventListener('submit', mockSubmit);
@@ -161,6 +274,77 @@ describe('Form Control Element', () => {
 			element.value = 'changed';
 			form.reset();
 			expect(element.value).toBe(null);
+		});
+
+		it('resets to default value', () => {
+			element.formControl = { is: 'checkbox', defaultChecked: true };
+			element.checked = false;
+			form.reset();
+			expect(element.checked).toBe(true);
+		});
+	});
+
+	describe('Attribute behavior', () => {
+		beforeEach(() => {
+			element = document.createElement('form-control') as FormControlElement;
+			element.formControl = { is: 'input' };
+		});
+
+		it('handles value', async () => {
+			element.setAttribute('value', 'test');
+			expect(element.value).toBe('test');
+			await new Promise<void>((resolve) => queueMicrotask(resolve));
+			element.removeAttribute('value');
+			expect(element.value).toBe(null);
+		});
+
+		it('handles name', () => {
+			element.setAttribute('name', 'test');
+			expect(element.name).toBe('test');
+			element.removeAttribute('name');
+			expect(element.name).toBe(undefined);
+		});
+
+		it('handles checked', () => {
+			element.setAttribute('checked', '');
+			expect(element.checked).toBe(true);
+			element.removeAttribute('checked');
+			expect(element.checked).toBe(false);
+		});
+
+		it('handles disabled', () => {
+			element.setAttribute('disabled', '');
+			expect(element.disabled).toBe(true);
+			element.removeAttribute('disabled');
+			expect(element.disabled).toBe(false);
+		});
+
+		it('handles required', () => {
+			element.setAttribute('required', '');
+			expect(element.required).toBe(true);
+			element.removeAttribute('required');
+			expect(element.required).toBe(false);
+		});
+
+		it('handles readonly', () => {
+			element.setAttribute('readonly', '');
+			expect(element.readOnly).toBe(true);
+			element.removeAttribute('readonly');
+			expect(element.readOnly).toBe(false);
+		});
+
+		it('handles placeholder', () => {
+			element.setAttribute('placeholder', 'test');
+			expect(element.placeholder).toBe('test');
+			element.removeAttribute('placeholder');
+			expect(element.placeholder).toBe(null);
+		});
+
+		it('handles role', () => {
+			element.setAttribute('role', 'button');
+			expect(element.role).toBe('button');
+			element.removeAttribute('role');
+			expect(element.role).toBe(null);
 		});
 	});
 });
