@@ -60,10 +60,6 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>((props, for
 		...forwardedProps
 	} = props;
 
-	const transformForTailwind = (cssString: string) => {
-		return cssString.replace(/(?:^|\s)(html)(?:[^-_a-z])/gi, ':host');
-	};
-
 	return (
 		<Scope
 			{...forwardedProps}
@@ -76,7 +72,6 @@ export const Tailwind = React.forwardRef<HTMLElement, TailwindProps>((props, for
 			pendingStyles={pendingStyles}
 			normalize={false}
 			slottedContent={slottedContent}
-			__transform={transformForTailwind}
 		>
 			{children}
 		</Scope>

@@ -71,10 +71,6 @@ export type ScopeProps = React.PropsWithChildren<
 		 * To enable form controls to participate in forms outside the shadow DOM, set this prop to the appropriate value.
 		 */
 		formControl?: FormControl;
-		/**
-		 * For internal use only. This is not a stable feature and may be removed at any time.
-		 */
-		__transform: (cssString: string) => string;
 	}> &
 		React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
 >;
@@ -138,7 +134,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		slottedContent,
 		normalize = true,
 		formControl,
-		__transform = (s) => s,
 		className,
 		...forwardedProps
 	} = props;
@@ -191,7 +186,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			requests.push(
 				fetch(currentHref, { signal: abortController.signal }).then(async (response: Response) => ({
 					currentHref,
-					text: __transform(await response.text()),
+					text: await response.text(),
 				})),
 			);
 		}
