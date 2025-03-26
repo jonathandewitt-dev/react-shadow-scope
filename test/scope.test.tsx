@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
-import { type CustomIntrinsicElement, Scope } from '../src/scope';
+import { cache, type CustomIntrinsicElement, Scope } from '../src/scope';
 import { css } from '../src/css-utils';
 import { renderShadow } from './test-utils';
 
@@ -176,8 +176,32 @@ describe('Scope component', () => {
 			expect(links?.[0]?.getAttribute('href')).toBe('/test1.css');
 			expect(links?.[1]?.getAttribute('href')).toBe('/test2.css');
 		});
+	});
+	describe('Async styles on load', () => {
+		it('handles stylesheet load without sheet', async () => {
+			const onLoad = vi.fn();
+			await renderShadow(
+				<Scope data-testid="scope" href="/test1.css" onLoad={onLoad}>
+					<div>Async content</div>
+				</Scope>,
+			);
 
-		it('handles stylesheet load event', async () => {
+			const scope = screen.getByTestId('scope');
+			const link = scope.shadowRoot!.querySelector('link');
+
+			// Trigger load event without a stylesheet
+			Object.defineProperty(link, 'sheet', { value: null });
+			link?.dispatchEvent(new Event('load'));
+
+			expect(onLoad).toHaveBeenCalledWith(
+				expect.objectContaining({
+					detail: { hrefs: ['/test1.css'] },
+				}),
+			);
+			expect(cache.stylesheets.has('/test1.css')).toBe(false);
+		});
+
+		it('handles single stylesheet load', async () => {
 			await renderShadow(
 				<Scope data-testid="scope" href="/test1.css">
 					<div>Async content</div>
@@ -210,6 +234,104 @@ describe('Scope component', () => {
 
 			const XInputClass = customElements.get('x-input');
 			expect(XInputClass).toBeTruthy();
+			cleanup();
+			await renderShadow(
+				<Scope
+					tag="x-input"
+					formControl={{
+						is: 'input',
+					}}
+				>
+					<input />
+				</Scope>,
+			);
+			expect(customElements.get('x-input')).toBe(XInputClass);
+		});
+
+		it('handles initial checked state', async () => {
+			await renderShadow(
+				<Scope
+					data-testid="scope"
+					formControl={{
+						is: 'checkbox',
+						checked: true,
+						name: 'test-checkbox',
+					}}
+				>
+					<input type="checkbox" />
+				</Scope>,
+			);
+
+			const scope = screen.getByTestId('scope');
+			expect(scope.hasAttribute('checked')).toBe(true);
+		});
+
+		it('handles checkbox state changes', async () => {
+			cleanup();
+
+			let resolve: () => void;
+			const promise = new Promise<void>((res) => {
+				resolve = res;
+			});
+
+			const TestCheckbox = () => {
+				const [checked, setChecked] = React.useState(false);
+				React.useEffect(() => {
+					setChecked(true);
+					const scope: HTMLInputElement = screen.getByTestId('scope');
+					resolve();
+					expect(scope.checked).toBe(true);
+				}, []);
+				return (
+					<Scope
+						data-testid="scope"
+						formControl={{
+							is: 'checkbox',
+							checked,
+							defaultChecked: true,
+							name: 'test-checkbox',
+						}}
+					>
+						<input type="checkbox" />
+					</Scope>
+				);
+			};
+
+			// Test state update
+			await renderShadow(<TestCheckbox />);
+
+			const scope: HTMLInputElement = screen.getByTestId('scope');
+			expect(scope.hasAttribute('checked')).toBe(false);
+			expect(scope.checked).toBe(false);
+			await promise;
+		});
+
+		it('handles className to class conversion', async () => {
+			await renderShadow(
+				<Scope data-testid="scope" className="test-class">
+					<div>Test content</div>
+				</Scope>,
+			);
+
+			const scope = screen.getByTestId('scope');
+			expect(scope.getAttribute('class')).toBe('test-class');
+		});
+
+		it('only adds checked and defaultChecked attributes for checkboxes and radios', async () => {
+			await renderShadow(
+				<Scope
+					data-testid="scope"
+					formControl={{
+						is: 'input',
+						name: 'test-checkbox',
+					}}
+				>
+					<input type="text" />
+				</Scope>,
+			);
+
+			const scope = screen.getByTestId('scope');
+			expect(scope.hasAttribute('checked')).toBe(false);
 		});
 	});
 });
