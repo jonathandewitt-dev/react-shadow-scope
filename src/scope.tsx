@@ -86,9 +86,9 @@ type Cache = {
 	stylesheets: Map<string, CSSStyleSheet>;
 };
 
-// This object is kept in memory to prevent fetching and/or
-// constructing the stylesheet(s) more than once.
-const cache: Cache = {
+// This object is kept in memory to prevent fetching and/or constructing the stylesheet(s) more than once.
+// ATTN: This is exported for testing purposes only. Do not export this in the main module.
+export const cache: Cache = {
 	cv: crypto.randomUUID(),
 	base: css`
 		@layer {
@@ -209,7 +209,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		if (customElements.get(Tag) === undefined) {
 			customElements.define(Tag, FormControlElement);
 		}
-		if (tagRef.current === null) return;
 		(tagRef.current as FormControlElement).formControl = formControl;
 	}, [Tag, JSON.stringify(formControl)]);
 
@@ -238,7 +237,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			required={formControl?.is === 'button' ? undefined : formControl?.required}
 			readonly={formControl?.is === 'button' ? undefined : formControl?.readonly}
 			placeholder={formControl?.is === 'input' ? formControl.placeholder : undefined}
-			checked={checkable ? (checked ? '' : null) : undefined}
+			checked={checkable ? (checked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
 			{...convertedProps}
 			{...forwardedProps}
