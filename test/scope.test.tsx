@@ -9,6 +9,7 @@ declare global {
 	namespace ReactShadowScope {
 		interface CustomElements {
 			'x-custom': CustomIntrinsicElement;
+			'x-input': CustomIntrinsicElement;
 		}
 	}
 }
@@ -82,6 +83,17 @@ describe('Scope component', () => {
 			const ref = React.createRef<HTMLElement>();
 			render(<Scope ref={ref} />);
 			expect(ref.current).toBeTruthy();
+		});
+
+		it('forwards function ref correctly', () => {
+			let refValue: HTMLElement | null = null;
+			const refCallback = (el: HTMLElement | null) => {
+				refValue = el;
+			};
+
+			render(<Scope ref={refCallback} data-testid="scope" />);
+			const element = screen.getByTestId('scope');
+			expect(refValue).toBe(element);
 		});
 	});
 
@@ -163,6 +175,41 @@ describe('Scope component', () => {
 			const links = scope.shadowRoot?.querySelectorAll('link');
 			expect(links?.[0]?.getAttribute('href')).toBe('/test1.css');
 			expect(links?.[1]?.getAttribute('href')).toBe('/test2.css');
+		});
+
+		it('handles stylesheet load event', async () => {
+			await renderShadow(
+				<Scope data-testid="scope" href="/test1.css">
+					<div>Async content</div>
+				</Scope>,
+			);
+			const scope = screen.getByTestId('scope');
+			const event = await new Promise<CustomEvent<{ hrefs: string[] }> | null>((resolve) => {
+				scope.addEventListener('load', (event) => {
+					resolve(event as CustomEvent<{ hrefs: string[] }>);
+				});
+				setTimeout(() => resolve(null), 1000);
+			});
+			if (event === null) throw new Error('Load timed out');
+			expect(event.detail.hrefs).toEqual(['/test1.css']);
+		});
+	});
+
+	describe('Form control', () => {
+		it('defines a custom element', async () => {
+			await renderShadow(
+				<Scope
+					tag="x-input"
+					formControl={{
+						is: 'input',
+					}}
+				>
+					<input />
+				</Scope>,
+			);
+
+			const XInputClass = customElements.get('x-input');
+			expect(XInputClass).toBeTruthy();
 		});
 	});
 });
