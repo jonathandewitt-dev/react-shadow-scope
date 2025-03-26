@@ -19,6 +19,11 @@ const getTaggedTemplateStr = (strArr: TemplateStringsArray, ...interpolated: unk
 	}, '');
 };
 
+export const getCSSText = (stylesheet: CSSStyleSheet): string =>
+	Array.from(stylesheet.cssRules)
+		.map((rule) => rule.cssText)
+		.join('');
+
 /**
  * A tagged template function that returns the provided CSS as a constructed stylesheet, or a plain string in case of no support.
  *

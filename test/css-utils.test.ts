@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { css, useCSS, isCSSStyleSheet, adoptedStylesSupported } from '../src/css-utils';
+import { css, useCSS, isCSSStyleSheet, adoptedStylesSupported, getCSSText } from '../src/css-utils';
 
 describe('CSS Utils', () => {
 	beforeEach(() => {
@@ -155,6 +155,14 @@ describe('CSS Utils', () => {
 
 		it('returns false for undefined', () => {
 			expect(isCSSStyleSheet(undefined)).toBe(false);
+		});
+	});
+
+	describe('getCSSText', () => {
+		it('returns CSS text from stylesheet', () => {
+			const sheet = new CSSStyleSheet();
+			sheet.replaceSync('.test { color: red; }');
+			expect(getCSSText(sheet)).toBe('.test { color: red; }');
 		});
 	});
 });
