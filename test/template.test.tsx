@@ -45,7 +45,7 @@ describe('Template component', () => {
 		expect(checkDSDSupport()).toBe(false);
 	});
 
-	it('renders null after DSD mounts', async () => {
+	it('adds default props', async () => {
 		await renderShadow(
 			<x-element data-testid="parent">
 				<Template>
@@ -54,7 +54,35 @@ describe('Template component', () => {
 			</x-element>,
 		);
 		const parent = screen.getByTestId('parent');
-		expect(parent.querySelector('template')).toBeNull();
+		expect(parent?.shadowRoot?.mode).toBe('open');
+		expect(parent?.shadowRoot?.clonable).toBe(false);
+		expect(parent?.shadowRoot?.serializable).toBe(false);
+		expect(parent?.shadowRoot?.delegatesFocus).toBe(false);
+	});
+
+	it('handles manual props', async () => {
+		await renderShadow(
+			<x-element data-testid="parent">
+				<Template shadowRootClonable={true} shadowRootSerializable={true} shadowRootDelegatesFocus={true}>
+					<div>Test content</div>
+				</Template>
+			</x-element>,
+		);
+
+		const parent = screen.getByTestId('parent');
+		expect(parent?.shadowRoot?.clonable).toBe(true);
+		expect(parent?.shadowRoot?.serializable).toBe(true);
+		expect(parent?.shadowRoot?.delegatesFocus).toBe(true);
+		cleanup();
+		await renderShadow(
+			<x-element data-testid="parent2">
+				<Template shadowRootMode="closed">
+					<div>Test content</div>
+				</Template>
+			</x-element>,
+		);
+		const parent2 = screen.getByTestId('parent2');
+		expect(parent2?.shadowRoot).toBe(null);
 	});
 
 	it('renders correct template source before mounting', () => {
@@ -84,29 +112,47 @@ describe('Template component', () => {
 		);
 	});
 
-	it('handles shadow root mode prop', async () => {
+	it('renders null after DSD mounts', async () => {
+		const templateRef = React.createRef<HTMLTemplateElement>();
 		await renderShadow(
 			<x-element data-testid="parent">
-				<Template shadowRootMode="open">
+				<Template ref={templateRef}>
 					<div>Test content</div>
 				</Template>
 			</x-element>,
 		);
-
 		const parent = screen.getByTestId('parent');
-		expect(parent?.shadowRoot?.mode).toBe('open');
+		expect(parent.querySelector('template')).toBeNull();
+		expect(templateRef.current).toBeTruthy();
+		expect(templateRef.current?.parentElement).toBeNull();
 	});
 
-	it('handles shadow root clonable prop', async () => {
+	it('renders children correctly', async () => {
 		await renderShadow(
 			<x-element data-testid="parent">
-				<Template shadowRootClonable={true}>
+				<Template>
+					<div>Child content</div>
+				</Template>
+			</x-element>,
+		);
+		const parent = screen.getByTestId('parent');
+		const div = parent.shadowRoot?.querySelector('div');
+		expect(div?.textContent).toBe('Child content');
+	});
+
+	it('attaches a shadow root imperatively when DSD is not supported', async () => {
+		cache.dsdSupported = false;
+		await renderShadow(
+			<x-element data-testid="parent">
+				<Template>
 					<div>Test content</div>
 				</Template>
 			</x-element>,
 		);
 		const parent = screen.getByTestId('parent');
-		expect(parent?.shadowRoot?.clonable).toBe(true);
+		expect(parent.shadowRoot).toBeTruthy();
+		const div = parent.shadowRoot?.querySelector('div');
+		expect(div?.textContent).toBe('Test content');
 	});
 
 	it('forwards ref correctly', async () => {
@@ -133,19 +179,6 @@ describe('Template component', () => {
 		);
 
 		expect(refValue).toBeInstanceOf(HTMLTemplateElement);
-	});
-
-	it('renders children correctly', async () => {
-		await renderShadow(
-			<x-element data-testid="parent">
-				<Template>
-					<div>Child content</div>
-				</Template>
-			</x-element>,
-		);
-		const parent = screen.getByTestId('parent');
-		const div = parent.shadowRoot?.querySelector('div');
-		expect(div?.textContent).toBe('Child content');
 	});
 
 	it('handles adopted stylesheets', async () => {
