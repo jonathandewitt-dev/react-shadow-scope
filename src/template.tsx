@@ -4,15 +4,16 @@ import * as ReactDOM from 'react-dom';
 import { adoptedStylesSupported, type StyleSheet } from './css-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
-let declarativeShadowDOMSupported: boolean | null = null;
-function checkDSDSupport(): boolean {
+// ATTN: These are only exported for testing purposes, do not export them in the main module
+export const cache: { dsdSupported: boolean | null } = { dsdSupported: null };
+export function checkDSDSupport(): boolean {
 	if (typeof window === 'undefined') return false;
-	if (declarativeShadowDOMSupported !== null) return declarativeShadowDOMSupported;
+	if (cache.dsdSupported !== null) return cache.dsdSupported;
 
 	// Parse a DSD fragment to check
 	const fragment = Document.parseHTMLUnsafe('<div><template shadowrootmode="open"></template></div>');
-	declarativeShadowDOMSupported = fragment.querySelector('div')!.shadowRoot !== null;
-	return declarativeShadowDOMSupported;
+	cache.dsdSupported = fragment.querySelector('div')!.shadowRoot !== null;
+	return cache.dsdSupported;
 }
 
 export type TemplateProps = React.PropsWithChildren<
@@ -141,10 +142,6 @@ const ClientTemplate = React.forwardRef<HTMLTemplateElement, TemplateProps>((pro
 
 		const parent = templateRef.current?.parentElement;
 		if (!parent) return;
-
-		if (parent.shadowRoot !== null) {
-			parent.shadowRoot.replaceChildren();
-		}
 
 		queueMicrotask(() => {
 			ReactDOM.flushSync(() => {
