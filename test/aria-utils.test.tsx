@@ -293,7 +293,7 @@ describe('Form Control Element', () => {
 		it('handles value', async () => {
 			element.setAttribute('value', 'test');
 			expect(element.value).toBe('test');
-			await new Promise<void>((resolve) => queueMicrotask(resolve));
+			await Promise.resolve();
 			element.removeAttribute('value');
 			expect(element.value).toBe(null);
 		});

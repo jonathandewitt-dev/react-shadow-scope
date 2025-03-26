@@ -6,6 +6,6 @@ export const renderShadow = async (ui: ReactNode, options?: RenderOptions) => {
 	document.body.appendChild(container);
 	const result = render(ui, { ...options, container });
 	// wait for shadow root to be attached
-	await new Promise<void>((resolve) => queueMicrotask(resolve));
+	await Promise.resolve();
 	return result;
 };
