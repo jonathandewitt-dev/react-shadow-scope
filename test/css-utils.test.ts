@@ -11,6 +11,29 @@ describe('CSS Utils', () => {
 		vi.unstubAllGlobals();
 	});
 
+	describe('isCSSStyleSheet', () => {
+		it('returns true for CSSStyleSheet instances', () => {
+			const sheet = new CSSStyleSheet();
+			expect(isCSSStyleSheet(sheet)).toBe(true);
+		});
+
+		it('returns false for strings', () => {
+			expect(isCSSStyleSheet('.test { color: red; }')).toBe(false);
+		});
+
+		it('returns false for undefined', () => {
+			expect(isCSSStyleSheet(undefined)).toBe(false);
+		});
+	});
+
+	describe('getCSSText', () => {
+		it('returns CSS text from stylesheet', () => {
+			const sheet = new CSSStyleSheet();
+			sheet.replaceSync('.test { color: red; }');
+			expect(getCSSText(sheet)).toBe('.test { color: red; }');
+		});
+	});
+
 	describe('css tagged template', () => {
 		it('returns CSSStyleSheet when supported', () => {
 			const styles = css`
@@ -140,29 +163,6 @@ describe('CSS Utils', () => {
 
 			expect(stylesheet.cssRules[0].cssText).toBe('.test { color: blue; }');
 			expect(stylesheet2.cssRules[0].cssText).toBe('.test { color: blue; }');
-		});
-	});
-
-	describe('isCSSStyleSheet', () => {
-		it('returns true for CSSStyleSheet instances', () => {
-			const sheet = new CSSStyleSheet();
-			expect(isCSSStyleSheet(sheet)).toBe(true);
-		});
-
-		it('returns false for strings', () => {
-			expect(isCSSStyleSheet('.test { color: red; }')).toBe(false);
-		});
-
-		it('returns false for undefined', () => {
-			expect(isCSSStyleSheet(undefined)).toBe(false);
-		});
-	});
-
-	describe('getCSSText', () => {
-		it('returns CSS text from stylesheet', () => {
-			const sheet = new CSSStyleSheet();
-			sheet.replaceSync('.test { color: red; }');
-			expect(getCSSText(sheet)).toBe('.test { color: red; }');
 		});
 	});
 });
