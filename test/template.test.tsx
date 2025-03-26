@@ -39,6 +39,10 @@ describe('Template component', () => {
 			},
 		});
 		expect(checkDSDSupport()).toBe(false);
+		vi.unstubAllGlobals();
+		cache.dsdSupported = null;
+		vi.stubGlobal('Document', undefined);
+		expect(checkDSDSupport()).toBe(false);
 	});
 
 	it('renders null after DSD mounts', async () => {

@@ -7,7 +7,7 @@ import { adoptedStylesSupported, type StyleSheet } from './css-utils';
 // ATTN: These are only exported for testing purposes, do not export them in the main module
 export const cache: { dsdSupported: boolean | null } = { dsdSupported: null };
 export function checkDSDSupport(): boolean {
-	if (typeof window === 'undefined') return false;
+	if (typeof Document === 'undefined') return false;
 	if (cache.dsdSupported !== null) return cache.dsdSupported;
 
 	// Parse a DSD fragment to check
