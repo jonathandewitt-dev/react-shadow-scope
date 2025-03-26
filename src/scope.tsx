@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { type StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
+import { type StyleSheet, css, getCSSText, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
 import { type FormControlValue, type FormControl, getFormControlElement } from './aria-utils';
 
@@ -76,19 +76,16 @@ export type ScopeProps = React.PropsWithChildren<
 >;
 
 type Cache = {
+	cv: `${string}-${string}-${string}-${string}-${string}`;
 	base: StyleSheet;
 	normalize: StyleSheet;
-	stylesheets: Map<string, StyleSheet>;
-};
-
-type CSSResponse = {
-	currentHref: string;
-	text: string;
+	stylesheets: Map<string, CSSStyleSheet>;
 };
 
 // This object is kept in memory to prevent fetching and/or
 // constructing the stylesheet(s) more than once.
 const cache: Cache = {
+	cv: crypto.randomUUID(),
 	base: css`
 		@layer {
 			/*
@@ -139,91 +136,55 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	} = props;
 
 	const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
-	const allHrefs = React.useMemo(() => (typeof href !== 'undefined' ? [href, ...hrefs] : hrefs), [href, hrefs]);
-	const pending = allHrefs.length > 0 && !hrefsLoaded;
+	const allHrefs = React.useMemo(() => (typeof href !== 'undefined' ? [href, ...hrefs] : hrefs), [href, hrefs.join()]);
+	const pendingHrefs = React.useMemo(
+		() => allHrefs.filter((href) => !cache.stylesheets.has(href)),
+		[allHrefs.join(), cache.cv],
+	);
+	const pending = pendingHrefs.length > 0 && !hrefsLoaded;
+	const [hrefStates, setHrefStates] = React.useState(
+		pendingHrefs.map((href) => ({ href: href.replace(location.origin, ''), loaded: false })),
+	);
+
+	const onHrefLoad: React.EventHandler<React.SyntheticEvent<HTMLLinkElement>> = React.useCallback(
+		(event) => {
+			const link = event.target as HTMLLinkElement;
+			const href = link.href.replace(location.origin, '');
+			if (link.sheet !== null) {
+				const constructedSheet = new CSSStyleSheet();
+				constructedSheet.replaceSync(getCSSText(link.sheet));
+				cache.stylesheets.set(href, constructedSheet);
+				cache.cv = crypto.randomUUID();
+			}
+			const _hrefStates = hrefStates.map((state) => ({
+				href: state.href,
+				loaded: state.href === href || state.loaded,
+			}));
+			setHrefStates(_hrefStates);
+			console.log('href loaded', { href, _hrefStates });
+			if (_hrefStates.every((state) => state.loaded)) {
+				setHrefsLoaded(true);
+			}
+		},
+		[allHrefs.join()],
+	);
 
 	// Combine all stylesheets into a single string to use for change detection.
-	// This may not be the most performant solution, but it feels necessary...
-	const localStyleText = [...stylesheets, stylesheet]
-		.map((s) =>
-			isCSSStyleSheet(s)
-				? Array.from(s.cssRules)
-						.map((r) => r.cssText)
-						.join('')
-				: s,
-		)
-		.join('');
+	// This may not be the most performant solution, but it may be necessary here...
+	const styleText = [...stylesheets, stylesheet].map((s) => (isCSSStyleSheet(s) ? getCSSText(s) : s)).join('');
 
-	const localStyleSheets = React.useMemo(() => {
-		const _localStylesheets = [];
-		if (normalize) _localStylesheets.push(cache.normalize);
-		_localStylesheets.push(cache.base, ...stylesheets);
-		if (pending) _localStylesheets.push(pendingStyles);
-		if (typeof stylesheet !== 'undefined') _localStylesheets.push(stylesheet);
-		return _localStylesheets;
-	}, [pending, localStyleText]);
-	const [allStyleSheets, setAllStyleSheets] = React.useState<StyleSheet[]>(localStyleSheets);
-
-	// load all stylesheets
-	React.useEffect(() => {
-		const _allStyleSheets: StyleSheet[] = [...localStyleSheets];
-
-		// Request or load from cache
-		const abortControllers: AbortController[] = [];
-		const requests: Promise<CSSResponse>[] = [];
-		for (const currentHref of allHrefs) {
-			if (cache.stylesheets.has(currentHref)) {
-				const currentCssStyleSheet = cache.stylesheets.get(currentHref);
-				if (typeof currentCssStyleSheet !== 'undefined') {
-					_allStyleSheets.push(currentCssStyleSheet);
-					continue; // skip the request if it was cached
-				}
-			}
-
-			// fetch the stylesheet as text
-			const abortController = new AbortController();
-			abortControllers.push(abortController);
-			requests.push(
-				fetch(currentHref, { signal: abortController.signal }).then(async (response: Response) => ({
-					currentHref,
-					text: await response.text(),
-				})),
-			);
+	const cssStyleSheets = React.useMemo(() => {
+		const _cssStyleSheets: StyleSheet[] = [];
+		if (normalize) _cssStyleSheets.push(cache.normalize);
+		_cssStyleSheets.push(cache.base, ...stylesheets);
+		if (pending) _cssStyleSheets.push(pendingStyles);
+		for (const href of allHrefs) {
+			const cachedSheet = cache.stylesheets.get(href);
+			if (cachedSheet !== undefined) _cssStyleSheets.push(cachedSheet);
 		}
-
-		// concurrently run all requests
-		if (requests.length > 0) {
-			Promise.all(requests)
-				.then((cssResponses) => {
-					for (const { currentHref, text } of cssResponses) {
-						const currentCssStyleSheet = css`
-							${text}
-						`;
-						_allStyleSheets.push(currentCssStyleSheet);
-						cache.stylesheets.set(currentHref, currentCssStyleSheet);
-					}
-					setAllStyleSheets(_allStyleSheets);
-					setHrefsLoaded(true);
-				})
-				.catch((error) => {
-					if (error === 'Aborted due to cleanup.' || error.name === 'AbortError') {
-						return;
-					}
-					console.error(error);
-				});
-		} else {
-			// if there are no requests to wait for, set immediately
-			setAllStyleSheets(_allStyleSheets);
-			setHrefsLoaded(true);
-		}
-
-		// cleanup any unfinished requests
-		return () => {
-			for (const abortController of abortControllers) {
-				abortController.abort('Aborted due to cleanup.');
-			}
-		};
-	}, [pending, localStyleText]);
+		if (typeof stylesheet !== 'undefined') _cssStyleSheets.push(stylesheet);
+		return _cssStyleSheets;
+	}, [pending, styleText, cache.cv]);
 
 	const tagRef = React.useRef(null);
 
@@ -280,20 +241,13 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 				shadowRootMode="open"
 				shadowRootDelegatesFocus={true}
 				shadowRootSerializable={true}
-				adoptedStyleSheets={allStyleSheets}
+				adoptedStyleSheets={cssStyleSheets}
 			>
-				{
-					/**
-					 * Use preload link to avoid FOUC (when rendered on the server)
-					 * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
-					 */
-					allHrefs.map((href) => (
-						<React.Fragment key={href}>
-							<link rel="preload" href={href} as="style" />
-							<link rel="stylesheet" href={href} />
-						</React.Fragment>
-					))
-				}
+				{hrefStates.map(({ href }) => (
+					<React.Fragment key={href}>
+						<link rel="stylesheet" href={href} onLoad={onHrefLoad} />
+					</React.Fragment>
+				))}
 				{children}
 			</Template>
 			{slottedContent}
