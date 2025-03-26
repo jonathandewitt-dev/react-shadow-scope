@@ -52,6 +52,10 @@ export type ScopeProps = React.PropsWithChildren<
 		 */
 		hrefs: string[];
 		/**
+		 * Event handler for when all remote stylesheets have been loaded. This also dispatches a `load` event on the host element.
+		 */
+		onLoad: (event: CustomEvent<{ hrefs: string[] }>) => void;
+		/**
 		 * Styles that will apply only when an external stylesheet is in the process of being fetched.
 		 *
 		 * @defaultValue `:host { visibility: hidden; }`
@@ -146,6 +150,17 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		pendingHrefs.map((href) => ({ href: href.replace(location.origin, ''), loaded: false })),
 	);
 
+	const tagRef = React.useRef<HTMLElement | null>(null);
+
+	React.useEffect(() => {
+		// Synchronize internal tag ref with the forwarded ref
+		if (typeof forwardedRef === 'function') {
+			forwardedRef(tagRef.current);
+		} else if (forwardedRef && typeof forwardedRef === 'object') {
+			(forwardedRef as React.RefObject<unknown>).current = tagRef.current;
+		}
+	}, []);
+
 	const onHrefLoad: React.EventHandler<React.SyntheticEvent<HTMLLinkElement>> = React.useCallback(
 		(event) => {
 			const link = event.target as HTMLLinkElement;
@@ -161,9 +176,11 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 				loaded: state.href === href || state.loaded,
 			}));
 			setHrefStates(_hrefStates);
-			console.log('href loaded', { href, _hrefStates });
 			if (_hrefStates.every((state) => state.loaded)) {
 				setHrefsLoaded(true);
+				const event = new CustomEvent('load', { detail: { hrefs: allHrefs } });
+				tagRef.current?.dispatchEvent(event);
+				props.onLoad?.(event);
 			}
 		},
 		[allHrefs.join()],
@@ -185,17 +202,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		if (typeof stylesheet !== 'undefined') _cssStyleSheets.push(stylesheet);
 		return _cssStyleSheets;
 	}, [pending, styleText, cache.cv]);
-
-	const tagRef = React.useRef(null);
-
-	React.useEffect(() => {
-		// Synchronize internal tag ref with the forwarded ref
-		if (typeof forwardedRef === 'function') {
-			forwardedRef(tagRef.current);
-		} else if (forwardedRef && typeof forwardedRef === 'object') {
-			(forwardedRef as React.RefObject<unknown>).current = tagRef.current;
-		}
-	}, []);
 
 	React.useLayoutEffect(() => {
 		class FormControlElement extends getFormControlElement() {}
