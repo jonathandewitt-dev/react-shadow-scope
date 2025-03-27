@@ -135,15 +135,22 @@ export const getFormControlElement = () =>
 			return this.#internals.role;
 		}
 
+		get form() {
+			return this.#internals.form;
+		}
+
 		set checked(newValue: boolean) {
 			if (this.#formControl.is === 'radio') {
 				const parent = this.#internals.form ?? document;
-				const radios = parent.querySelectorAll(`[name="${this.#formControl.name}"]`);
+				const radios = parent.querySelectorAll<HTMLInputElement | FormControlElement>(
+					`[name="${this.#formControl.name}"]`,
+				);
 				for (const radio of radios) {
 					if (radio === this) continue;
-					if (radio instanceof HTMLInputElement && this.#internals.form === null && radio.form !== null) continue;
-					if (radio.role === 'radio' || (radio instanceof HTMLInputElement && radio.type === 'radio')) {
-						if (radio instanceof FormControlElement && radio.checked) {
+					const isInput = radio instanceof HTMLInputElement;
+					if (this.#internals.form !== radio.form) continue;
+					if (radio.role === 'radio' || (isInput && radio.type === 'radio')) {
+						if (radio.checked) {
 							radio.checked = false;
 						}
 					}
@@ -155,6 +162,7 @@ export const getFormControlElement = () =>
 				this.#input instanceof HTMLInputElement &&
 				this.#input.type === this.#formControl.is
 			) {
+				console.log('setting checked', newValue);
 				this.#input.checked = newValue;
 			}
 			queueMicrotask(() => {
