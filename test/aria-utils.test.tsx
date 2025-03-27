@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getFormControlElement } from '../src/aria-utils';
+import { getFormControlElement, MISSING_MESSAGE } from '../src/aria-utils';
 
 describe('Form Control Element', () => {
 	class FormControlElement extends getFormControlElement() {}
@@ -102,6 +102,7 @@ describe('Form Control Element', () => {
 			expectValidity(true, element);
 			element.required = true;
 			expect(element.validity.valueMissing).toBe(true);
+			expect(element.validationMessage).toBe(MISSING_MESSAGE);
 			expectValidity(false, element);
 			element.value = 'test';
 			expect(element.validity.valueMissing).toBe(false);
@@ -183,6 +184,19 @@ describe('Form Control Element', () => {
 			const internals = element.peekInternals();
 			expect(internals.role).toBe('radio');
 			expect(internals.ariaChecked).toBe('false');
+		});
+
+		it('handles default state', () => {
+			element.formControl = {
+				is: 'radio',
+				defaultChecked: true,
+			};
+			expect(element.checked).toBe(true);
+			element2.formControl = {
+				is: 'radio',
+				checked: true,
+			};
+			expect(element2.checked).toBe(true);
 		});
 
 		it('unchecks other radio buttons in same group', () => {
@@ -335,6 +349,10 @@ describe('Form Control Element', () => {
 			element.checked = false;
 			form.reset();
 			expect(element.checked).toBe(true);
+			element.formControl = { is: 'checkbox', defaultChecked: false };
+			element.checked = true;
+			form.reset();
+			expect(element.checked).toBe(false);
 		});
 	});
 

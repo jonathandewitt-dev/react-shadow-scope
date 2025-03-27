@@ -82,6 +82,8 @@ const DEFAULT_FORM_CONTROL: FormControl = {
 	readonly: false,
 };
 
+export const MISSING_MESSAGE = 'Please fill out this field.';
+
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
@@ -308,7 +310,6 @@ export const getFormControlElement = () =>
 			const input = this.#input;
 			const empty = this.#value === null || this.#value === '';
 			const valueMissing = this.#internals.ariaRequired === 'true' && empty;
-			const MISSING_MESSAGE = 'Please fill out this field.';
 			if (input === undefined) {
 				this.#internals.setValidity({ valueMissing }, MISSING_MESSAGE);
 			} else {
