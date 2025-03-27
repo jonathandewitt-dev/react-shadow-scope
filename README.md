@@ -24,10 +24,9 @@ As a rule of thumb, you should limit your global CSS to little or nothing. The n
   - [Constructed Style Sheets](#constructed-style-sheets)
   - [Remote Style Sheets](#remote-style-sheets)
   - [Excluding Children From the Scope](#excluding-children-from-the-scope)
-  - [Declarative Shadow DOM](#declarative-shadow-dom)
+  - [Templates](#templates)
   - [Tailwind](#tailwind)
 - [Maintainers](#maintainers)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Install
@@ -220,7 +219,7 @@ If you'd rather save static assets, or you depend on a third-party stylesheet, y
 
 When rendering on the server, this will simply add a `<link>` tag pointing to the given href.
 
-When rendering on the client, this will fetch the file as text, and create a `CSSStyleSheet` instance from it. If `adoptedStyleSheets` are not supported, it will fall back on the `<link>` tag. All stylesheets are cached by href, so they won't be fetched (or constructed) multiple times even if they were fetched by a different `<Scope>`.
+Once the remote stylesheet has loaded, it will be cloned into a constructable `CSSStyleSheet` and cached by href, so they won't be loaded (or constructed) multiple times even if they were loaded by a different `<Scope>`.
 
 You can also link multiple stylesheets using the `hrefs` (plural) prop.
 
@@ -257,9 +256,105 @@ But at the point you're taking full advantage these additional features, you may
 
 ---
 
-### Declarative Shadow DOM
+### Form Controls
 
-If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>` together with `<CustomElement>`. This adds support to React for the native `<template>` element, with some added features.
+When you use shadow DOM, form elements inside the shadow root can't naturally connect to forms outside of it. This means features like form validation and submission won't work by default. The `formControl` prop solves this problem by making the host element itself act as the form control.
+
+#### Basic Usage
+
+```jsx
+// A basic text input
+<Scope formControl={{ control: 'text', value: inputValue }}>
+  <input type="text" onInput={handleInput} />
+</Scope>
+
+// A checkbox
+<Scope formControl={{
+  control: 'checkbox',
+  checked: isChecked,
+  name: 'agree'
+}}>
+  <input type="checkbox" onChange={onChange} />
+</Scope>
+
+// A submit button
+<Scope formControl={{ control: 'button' }}>
+  <button>Submit</button>
+</Scope>
+```
+
+> Note that you may omit the nested form elements, but you will be responsible for recreating their features manually. It's common to simply nest a corresponding element according to the `control` field, and update the host element's value when it changes. The library does its best to keep the inner control in sync with its host element.
+
+#### Control Types
+
+The `formControl` prop accepts different configurations based on the type of control:
+
+- **Text Controls**: `text`, `password`, `email`, `tel`, `url`, `search`
+
+  ```jsx
+  formControl={{
+    control: 'text',         // or any text type
+    value: string,           // current value
+    placeholder: string,     // optional placeholder text
+    required: boolean,       // is the field required?
+    readonly: boolean,       // is the field read-only?
+    disabled: boolean        // is the field disabled?
+  }}
+  ```
+
+- **Checkbox/Radio**: `checkbox`, `radio`
+
+  ```jsx
+  formControl={{
+    control: 'checkbox',      // or 'radio'
+    checked: boolean,         // is it checked?
+    name: string,             // field name (important for radio groups)
+    required: boolean,        // is it required?
+    disabled: boolean         // is it disabled?
+  }}
+  ```
+
+- **Button/Image**: `<button>`, `image`
+
+  ```jsx
+  formControl={{
+    control: 'button',        // or 'image'
+    type: 'button',           // or 'submit', 'reset'
+  }}
+  ```
+
+- **Number/Range**: `number`, `range`, `date`, `time`, `datetime-local`, `month`, `week`
+
+  ```jsx
+  formControl={{
+    control: 'number',        // or any range type
+    value: string,            // current value
+    min: string | number,     // minimum value
+    max: string | number,     // maximum value
+    step: string | number,    // step increment
+    required: boolean,        // is it required?
+    disabled: boolean         // is it disabled?
+  }}
+  ```
+
+- **And so on**, including `hidden`, `<select>`, `<textarea>`, `file`, `color`,
+
+The form control will automatically:
+
+- Register with parent forms
+- Handle validation states
+- Support form submission
+- Work with form reset events
+- Manage disabled states
+- Handle required field validation
+
+All of this happens while maintaining shadow DOM encapsulation for your styles.
+
+---
+
+### Templates
+
+If you want to use declarative shadow DOM directly, without the `<Scope>` component, you can use `<Template>` as you usually would natively. This adds support to React for the native `<template>` element, with some added features.
 
 ```jsx
 import { useCSS, Template, CustomElement } from 'react-shadow-scope';
@@ -267,7 +362,7 @@ import { useCSS, Template, CustomElement } from 'react-shadow-scope';
 const MyComponent = () => {
   const css = useCSS();
   return (
-    <CustomElement tag="card-element">
+    <card-element>
       {/* Note the declarative `adoptedStyleSheets` prop! */}
       <Template
         shadowrootmode="closed"
@@ -284,7 +379,7 @@ const MyComponent = () => {
       </Template>
       <span slot="heading">Title Here</span>
       <p>Inside Default Slot</p>
-    </CustomElement>
+    </card-element>
   );
 };
 ```

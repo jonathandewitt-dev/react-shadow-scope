@@ -136,12 +136,12 @@ export default function Demo() {
 					Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM
 					encapsulating HTML form controls.
 				</p>
-				<Scope tag="my-input" formControl={{ control: 'input', value, name: 'my-input' }}>
+				<Scope tag="my-input" formControl={{ control: 'text', value, name: 'my-input' }}>
 					<input onChange={(event) => setValue(event.currentTarget.value)} required />
 				</Scope>
 				<Scope
 					tag="my-custom-input"
-					formControl={{ control: 'input', value: value2, name: 'my-custom-input', required: true }}
+					formControl={{ control: 'text', value: value2, name: 'my-custom-input', required: true }}
 					stylesheet={css2`
 						:host {
 							display: inline-block;
