@@ -2,7 +2,6 @@
 import React from 'react';
 import { type StyleSheet, css, getCSSText, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
-import { type FormControlValue, type FormControl, getFormControlElement, isPlaceholderFormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
 	class?: string;
@@ -71,10 +70,6 @@ export type ScopeProps = React.PropsWithChildren<
 		 * @defaultValue `true`
 		 */
 		normalize: boolean;
-		/**
-		 * To enable form controls to participate in forms outside the shadow DOM, set this prop to the appropriate value.
-		 */
-		formControl?: FormControl;
 	}> &
 		React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
 >;
@@ -134,7 +129,6 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		`,
 		slottedContent,
 		normalize = true,
-		formControl,
 		className,
 		...forwardedProps
 	} = props;
@@ -203,46 +197,10 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		return _cssStyleSheets;
 	}, [pending, styleText, stylesheetCache.cv]);
 
-	React.useLayoutEffect(() => {
-		class FormControlElement extends getFormControlElement() {}
-		if (formControl === undefined) return;
-		if (customElements.get(Tag) === undefined) {
-			customElements.define(Tag, FormControlElement);
-		}
-		(tagRef.current as FormControlElement).formControl = formControl;
-	}, [Tag, JSON.stringify(formControl)]);
-
-	const [value, setValue] = React.useState<FormControlValue>(formControl?.value ?? null);
-	const formControlValue = formControl?.value ?? null;
-	React.useEffect(() => {
-		setValue(formControlValue);
-	}, [formControlValue]);
-
-	const checkable = formControl?.control === 'checkbox' || formControl?.control === 'radio';
-	const [checked, setChecked] = React.useState<boolean>((checkable && formControl?.checked) ?? false);
-	const formControlChecked = (checkable && formControl?.checked) ?? false;
-	React.useEffect(() => {
-		setChecked(formControlChecked);
-	}, [formControlChecked]);
-
 	const convertedProps = className ? { class: className } : {};
-	const isButton = formControl?.control === 'button' || formControl?.control === 'image';
 
 	return (
-		<Tag
-			ref={tagRef}
-			// @ts-expect-error // name is not recognized on custom elements, but it's required for form controls
-			name={formControl?.name}
-			value={value}
-			disabled={formControl?.disabled}
-			required={isButton ? undefined : formControl?.required}
-			readonly={isButton ? undefined : formControl?.readonly}
-			placeholder={isPlaceholderFormControl(formControl) ? formControl.placeholder : undefined}
-			checked={checkable ? (checked ? '' : undefined) : undefined}
-			defaultChecked={checkable ? formControl.defaultChecked : undefined}
-			{...convertedProps}
-			{...forwardedProps}
-		>
+		<Tag ref={tagRef} {...convertedProps} {...forwardedProps}>
 			<Template
 				shadowRootMode="open"
 				shadowRootDelegatesFocus={true}

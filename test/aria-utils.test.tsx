@@ -53,7 +53,6 @@ describe('Form Control Element', () => {
 			expect(element.formControl).toEqual({
 				control: 'text',
 				value: null,
-				name: '',
 				disabled: false,
 				required: false,
 				readonly: false,

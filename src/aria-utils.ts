@@ -54,7 +54,9 @@ type SimpleFormControl = SharedFormControlProps & {
 
 const RANGE_CONTROLS = ['range', 'time', 'date', 'datetime-local', 'month', 'week'] as const;
 
-const isRangeOrNumber = (formControl: FormControl): formControl is RangeFormControl | NumberFormControl =>
+export const isRangeOrNumberFormControl = (
+	formControl: FormControlType,
+): formControl is RangeFormControl | NumberFormControl =>
 	formControl.control === 'number' || RANGE_CONTROLS.includes(formControl.control as (typeof RANGE_CONTROLS)[number]);
 
 type RangeFormControl = SharedFormControlProps &
@@ -83,7 +85,7 @@ type TextFormControl = SharedFormControlProps &
 	};
 
 export const isPlaceholderFormControl = (
-	formControl?: FormControl,
+	formControl?: FormControlType,
 ): formControl is TextFormControl | NumberFormControl =>
 	formControl !== undefined &&
 	['text', 'password', 'email', 'tel', 'url', 'search', 'number'].includes(formControl.control);
@@ -116,7 +118,7 @@ type ButtonFormControl = SharedFormControlProps & {
 	type?: 'button' | 'submit' | 'reset';
 };
 
-export type FormControl =
+export type FormControlType =
 	| TextFormControl
 	| CheckboxFormControl
 	| ButtonFormControl
@@ -126,14 +128,13 @@ export type FormControl =
 
 export type HTMLFormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
-const DEFAULT_FORM_CONTROL: FormControl = {
+export const DEFAULT_FORM_CONTROL: FormControlType = {
 	control: 'text',
 	value: null,
-	name: '',
 	disabled: false,
 	required: false,
 	readonly: false,
-};
+} as const;
 
 export const MISSING_MESSAGE = 'Please fill out this field.';
 export const RANGE_UNDERFLOW_MESSAGE = 'Value must be greater than or equal to ';
@@ -145,12 +146,12 @@ export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
 		#internals = this.attachInternals();
-		#formControl: FormControl = DEFAULT_FORM_CONTROL;
+		#formControl: FormControlType = DEFAULT_FORM_CONTROL;
 
 		get formControl() {
 			return this.#formControl;
 		}
-		set formControl(newValue: FormControl) {
+		set formControl(newValue: FormControlType) {
 			this.#formControl = newValue;
 			this.#initInternals();
 		}
@@ -455,12 +456,12 @@ export const getFormControlElement = () =>
 
 			// check for range control validity
 			const rangeUnderflow =
-				isRangeOrNumber(this.#formControl) &&
+				isRangeOrNumberFormControl(this.#formControl) &&
 				this.#value !== null &&
 				this.#formControl.min !== undefined &&
 				this.#convertForComparison(this.#value) < this.#convertForComparison(this.#formControl.min);
 			const rangeOverflow =
-				isRangeOrNumber(this.#formControl) &&
+				isRangeOrNumberFormControl(this.#formControl) &&
 				this.#value !== null &&
 				this.#formControl.max !== undefined &&
 				this.#convertForComparison(this.#value) > this.#convertForComparison(this.#formControl.max);
@@ -486,10 +487,11 @@ export const getFormControlElement = () =>
 			// determine the validity message
 			let message = '';
 			if (valueMissing) message = MISSING_MESSAGE;
-			if (isRangeOrNumber(this.#formControl) && rangeUnderflow)
+			if (isRangeOrNumberFormControl(this.#formControl) && rangeUnderflow)
 				message = RANGE_UNDERFLOW_MESSAGE + this.#formControl.min;
-			if (isRangeOrNumber(this.#formControl) && rangeOverflow) message = RANGE_OVERFLOW_MESSAGE + this.#formControl.max;
-			if (isRangeOrNumber(this.#formControl) && stepMismatch) {
+			if (isRangeOrNumberFormControl(this.#formControl) && rangeOverflow)
+				message = RANGE_OVERFLOW_MESSAGE + this.#formControl.max;
+			if (isRangeOrNumberFormControl(this.#formControl) && stepMismatch) {
 				const min = Number(this.#formControl.min);
 				const max = Number(this.#formControl.max);
 				const step = Number(this.#formControl.step);
