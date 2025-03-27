@@ -82,6 +82,12 @@ type TextFormControl = SharedFormControlProps &
 		control: 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
 	};
 
+export const isPlaceholderFormControl = (
+	formControl?: FormControl,
+): formControl is TextFormControl | NumberFormControl =>
+	formControl !== undefined &&
+	['text', 'password', 'email', 'tel', 'url', 'search', 'number'].includes(formControl.control);
+
 type CheckboxFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.

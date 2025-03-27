@@ -2,7 +2,7 @@
 import React from 'react';
 import { type StyleSheet, css, getCSSText, isCSSStyleSheet, normalizedScope } from './css-utils';
 import { Template } from './template';
-import { type FormControlValue, type FormControl, getFormControlElement } from './aria-utils';
+import { type FormControlValue, type FormControl, getFormControlElement, isPlaceholderFormControl } from './aria-utils';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
 	class?: string;
@@ -236,7 +236,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			disabled={formControl?.disabled}
 			required={formControl?.control === 'button' ? undefined : formControl?.required}
 			readonly={formControl?.control === 'button' ? undefined : formControl?.readonly}
-			placeholder={formControl?.control === 'input' ? formControl.placeholder : undefined}
+			placeholder={isPlaceholderFormControl(formControl) ? formControl.placeholder : undefined}
 			checked={checkable ? (checked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
 			{...convertedProps}

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
 	getFormControlElement,
+	isPlaceholderFormControl,
 	MISSING_MESSAGE,
 	RANGE_OVERFLOW_MESSAGE,
 	RANGE_UNDERFLOW_MESSAGE,
@@ -22,6 +23,29 @@ describe('Form Control Element', () => {
 	afterEach(() => {
 		element.remove();
 		vi.resetAllMocks();
+	});
+
+	describe('Extra utilities', () => {
+		it('checks if form control is a placeholder', () => {
+			const result1 = isPlaceholderFormControl({ control: 'text' });
+			const result2 = isPlaceholderFormControl({ control: 'number' });
+			const result3 = isPlaceholderFormControl({ control: 'password' });
+			const result4 = isPlaceholderFormControl({ control: 'email' });
+			const result5 = isPlaceholderFormControl({ control: 'search' });
+			const result6 = isPlaceholderFormControl({ control: 'tel' });
+			const result7 = isPlaceholderFormControl({ control: 'url' });
+			const result8 = isPlaceholderFormControl({ control: 'textarea' });
+			const result9 = isPlaceholderFormControl(undefined);
+			expect(result1).toBe(true);
+			expect(result2).toBe(true);
+			expect(result3).toBe(true);
+			expect(result4).toBe(true);
+			expect(result5).toBe(true);
+			expect(result6).toBe(true);
+			expect(result7).toBe(true);
+			expect(result8).toBe(false);
+			expect(result9).toBe(false);
+		});
 	});
 
 	describe('Basic functionality', () => {
