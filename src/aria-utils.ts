@@ -27,14 +27,14 @@ type SimpleFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.
 	 */
-	is: 'hidden' | 'select' | 'textarea';
+	control: 'hidden' | 'select' | 'textarea';
 };
 
 type TextFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.
 	 */
-	is: 'input';
+	control: 'input';
 	/**
 	 * The placeholder of the form control element.
 	 */
@@ -45,7 +45,7 @@ type CheckboxFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.
 	 */
-	is: 'checkbox' | 'radio';
+	control: 'checkbox' | 'radio';
 	/**
 	 * The checked state of the input element.
 	 */
@@ -60,7 +60,7 @@ type ButtonFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.
 	 */
-	is: 'button';
+	control: 'button';
 	/**
 	 * The type of the button element.
 	 *
@@ -74,7 +74,7 @@ export type FormControl = TextFormControl | CheckboxFormControl | ButtonFormCont
 export type HTMLFormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 const DEFAULT_FORM_CONTROL: FormControl = {
-	is: 'input',
+	control: 'input',
 	value: null,
 	name: '',
 	disabled: false,
@@ -142,7 +142,7 @@ export const getFormControlElement = () =>
 		}
 
 		set checked(newValue: boolean) {
-			if (this.#formControl.is === 'radio') {
+			if (this.#formControl.control === 'radio') {
 				const parent = this.#internals.form ?? document;
 				const radios = parent.querySelectorAll<HTMLInputElement | FormControlElement>(
 					`[name="${this.#formControl.name}"]`,
@@ -162,7 +162,7 @@ export const getFormControlElement = () =>
 			if (
 				this.#input !== undefined &&
 				this.#input instanceof HTMLInputElement &&
-				this.#input.type === this.#formControl.is
+				this.#input.type === this.#formControl.control
 			) {
 				console.log('setting checked', newValue);
 				this.#input.checked = newValue;
@@ -205,7 +205,7 @@ export const getFormControlElement = () =>
 		}
 
 		#handleClick = (() => {
-			if (this.#formControl.is !== 'button') return;
+			if (this.#formControl.control !== 'button') return;
 			const type = this.#formControl.type ?? 'submit';
 			if (type === 'submit') this.#internals.form?.requestSubmit();
 		}).bind(this);
@@ -249,7 +249,7 @@ export const getFormControlElement = () =>
 			this.#internals.ariaReadOnly = String(this.#formControl.readonly ?? false);
 			this.#updateValidity();
 			form?.addEventListener('reset', this.#handleReset);
-			switch (this.#formControl?.is) {
+			switch (this.#formControl?.control) {
 				case 'button':
 					this.#internals.role = 'button';
 					this.addEventListener('mousedown', () => {
@@ -293,7 +293,7 @@ export const getFormControlElement = () =>
 		}
 
 		get #input(): HTMLFormControlElement | undefined {
-			if (this.#formControl.is === 'button') return;
+			if (this.#formControl.control === 'button') return;
 			const tagnameMap = {
 				input: 'input',
 				checkbox: 'input',
@@ -302,7 +302,7 @@ export const getFormControlElement = () =>
 				textarea: 'textarea',
 				select: 'select',
 			} as const;
-			const tagname = tagnameMap[this.#formControl.is];
+			const tagname = tagnameMap[this.#formControl.control];
 			return this.shadowRoot?.querySelector(tagname) ?? undefined;
 		}
 

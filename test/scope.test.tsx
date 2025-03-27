@@ -225,7 +225,7 @@ describe('Scope component', () => {
 				<Scope
 					tag="x-input"
 					formControl={{
-						is: 'input',
+						control: 'input',
 					}}
 				>
 					<input />
@@ -239,7 +239,7 @@ describe('Scope component', () => {
 				<Scope
 					tag="x-input"
 					formControl={{
-						is: 'input',
+						control: 'input',
 					}}
 				>
 					<input />
@@ -253,7 +253,7 @@ describe('Scope component', () => {
 				<Scope
 					data-testid="scope"
 					formControl={{
-						is: 'checkbox',
+						control: 'checkbox',
 						checked: true,
 						name: 'test-checkbox',
 					}}
@@ -286,7 +286,7 @@ describe('Scope component', () => {
 					<Scope
 						data-testid="scope"
 						formControl={{
-							is: 'checkbox',
+							control: 'checkbox',
 							checked,
 							defaultChecked: true,
 							name: 'test-checkbox',
@@ -322,7 +322,7 @@ describe('Scope component', () => {
 				<Scope
 					data-testid="scope"
 					formControl={{
-						is: 'input',
+						control: 'input',
 						name: 'test-checkbox',
 					}}
 				>

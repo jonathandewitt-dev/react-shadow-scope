@@ -20,7 +20,7 @@ describe('Form Control Element', () => {
 	describe('Basic functionality', () => {
 		it('initializes with default form control', () => {
 			expect(element.formControl).toEqual({
-				is: 'input',
+				control: 'input',
 				value: null,
 				name: '',
 				disabled: false,
@@ -37,8 +37,8 @@ describe('Form Control Element', () => {
 		});
 
 		it('updates formControl correctly', () => {
-			element.formControl = { is: 'button' };
-			expect(element.formControl.is).toBe('button');
+			element.formControl = { control: 'button' };
+			expect(element.formControl.control).toBe('button');
 		});
 
 		it('updates value correctly', () => {
@@ -112,7 +112,7 @@ describe('Form Control Element', () => {
 
 	describe('Select behavior', () => {
 		beforeEach(() => {
-			element.formControl = { is: 'select' };
+			element.formControl = { control: 'select' };
 		});
 		it('updates internals', () => {
 			const internals = element.peekInternals();
@@ -127,7 +127,7 @@ describe('Form Control Element', () => {
 	describe('Checkbox behavior', () => {
 		beforeEach(() => {
 			element.formControl = {
-				is: 'checkbox',
+				control: 'checkbox',
 				name: 'test-checkbox',
 			};
 		});
@@ -153,7 +153,7 @@ describe('Form Control Element', () => {
 
 		it('sets default checked state', () => {
 			element.formControl = {
-				is: 'checkbox',
+				control: 'checkbox',
 				defaultChecked: true,
 			};
 			expect(element.checked).toBe(true);
@@ -173,7 +173,7 @@ describe('Form Control Element', () => {
 			document.body.appendChild(element2);
 			document.body.appendChild(element3);
 			element.formControl = {
-				is: 'radio',
+				control: 'radio',
 				name: 'test-radio',
 			};
 			element2.formControl = { ...element.formControl };
@@ -188,12 +188,12 @@ describe('Form Control Element', () => {
 
 		it('handles default state', () => {
 			element.formControl = {
-				is: 'radio',
+				control: 'radio',
 				defaultChecked: true,
 			};
 			expect(element.checked).toBe(true);
 			element2.formControl = {
-				is: 'radio',
+				control: 'radio',
 				checked: true,
 			};
 			expect(element2.checked).toBe(true);
@@ -274,7 +274,7 @@ describe('Form Control Element', () => {
 
 	describe('Textarea behavior', () => {
 		beforeEach(() => {
-			element.formControl = { is: 'textarea' };
+			element.formControl = { control: 'textarea' };
 		});
 
 		it('updates internals', () => {
@@ -290,7 +290,7 @@ describe('Form Control Element', () => {
 
 		beforeEach(() => {
 			element.formControl = {
-				is: 'button',
+				control: 'button',
 				type: 'submit',
 			};
 			form = document.createElement('form');
@@ -332,7 +332,7 @@ describe('Form Control Element', () => {
 		let form: HTMLFormElement;
 
 		beforeEach(() => {
-			element.formControl = { is: 'input' };
+			element.formControl = { control: 'input' };
 			form = document.createElement('form');
 			form.appendChild(element);
 			document.body.appendChild(form);
@@ -345,11 +345,11 @@ describe('Form Control Element', () => {
 		});
 
 		it('resets to default value', () => {
-			element.formControl = { is: 'checkbox', defaultChecked: true };
+			element.formControl = { control: 'checkbox', defaultChecked: true };
 			element.checked = false;
 			form.reset();
 			expect(element.checked).toBe(true);
-			element.formControl = { is: 'checkbox', defaultChecked: false };
+			element.formControl = { control: 'checkbox', defaultChecked: false };
 			element.checked = true;
 			form.reset();
 			expect(element.checked).toBe(false);
@@ -359,7 +359,7 @@ describe('Form Control Element', () => {
 	describe('Attribute behavior', () => {
 		beforeEach(() => {
 			element = document.createElement('form-control') as FormControlElement;
-			element.formControl = { is: 'input' };
+			element.formControl = { control: 'input' };
 		});
 
 		it('handles value', async () => {

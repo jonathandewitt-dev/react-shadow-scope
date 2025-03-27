@@ -136,12 +136,12 @@ export default function Demo() {
 					Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM
 					encapsulating HTML form controls.
 				</p>
-				<Scope tag="my-input" formControl={{ is: 'input', value, name: 'my-input' }}>
+				<Scope tag="my-input" formControl={{ control: 'input', value, name: 'my-input' }}>
 					<input onChange={(event) => setValue(event.currentTarget.value)} required />
 				</Scope>
 				<Scope
 					tag="my-custom-input"
-					formControl={{ is: 'input', value: value2, name: 'my-custom-input', required: true }}
+					formControl={{ control: 'input', value: value2, name: 'my-custom-input', required: true }}
 					stylesheet={css2`
 						:host {
 							display: inline-block;
@@ -157,7 +157,7 @@ export default function Demo() {
 				>
 					<div contentEditable onInput={(event) => setValue2(event.currentTarget.textContent ?? '')}></div>
 				</Scope>
-				<Scope tag="my-select" formControl={{ is: 'select', value: selected, name: 'my-select', required: true }}>
+				<Scope tag="my-select" formControl={{ control: 'select', value: selected, name: 'my-select', required: true }}>
 					<select onChange={(event) => setSelected(event.currentTarget.value)}>
 						<option></option>
 						<option value="1">One</option>
@@ -165,7 +165,7 @@ export default function Demo() {
 						<option value="3">Three</option>
 					</select>
 				</Scope>
-				<Scope tag="my-checkbox" formControl={{ is: 'checkbox', value: 'checked', checked, name: 'my-checkbox' }}>
+				<Scope tag="my-checkbox" formControl={{ control: 'checkbox', value: 'checked', checked, name: 'my-checkbox' }}>
 					<input
 						type="checkbox"
 						onChange={(event) => {
@@ -173,7 +173,10 @@ export default function Demo() {
 						}}
 					/>
 				</Scope>
-				<Scope tag="my-radio" formControl={{ is: 'radio', value: 'one', checked: radio === 'one', name: 'my-radio' }}>
+				<Scope
+					tag="my-radio"
+					formControl={{ control: 'radio', value: 'one', checked: radio === 'one', name: 'my-radio' }}
+				>
 					<input
 						type="radio"
 						checked={radio === 'one'}
@@ -182,7 +185,10 @@ export default function Demo() {
 						}}
 					/>
 				</Scope>
-				<Scope tag="my-radio" formControl={{ is: 'radio', value: 'two', checked: radio === 'two', name: 'my-radio' }}>
+				<Scope
+					tag="my-radio"
+					formControl={{ control: 'radio', value: 'two', checked: radio === 'two', name: 'my-radio' }}
+				>
 					<input
 						type="radio"
 						checked={radio === 'two'}
@@ -191,7 +197,7 @@ export default function Demo() {
 						}}
 					/>
 				</Scope>
-				<Scope tag="my-button" formControl={{ is: 'button', type: 'submit' }}>
+				<Scope tag="my-button" formControl={{ control: 'button', type: 'submit' }}>
 					<button>Submit</button>
 				</Scope>
 			</form>

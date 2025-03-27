@@ -218,7 +218,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 		setValue(formControlValue);
 	}, [formControlValue]);
 
-	const checkable = formControl?.is === 'checkbox' || formControl?.is === 'radio';
+	const checkable = formControl?.control === 'checkbox' || formControl?.control === 'radio';
 	const [checked, setChecked] = React.useState<boolean>((checkable && formControl?.checked) ?? false);
 	const formControlChecked = (checkable && formControl?.checked) ?? false;
 	React.useEffect(() => {
@@ -234,9 +234,9 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			name={formControl?.name}
 			value={value}
 			disabled={formControl?.disabled}
-			required={formControl?.is === 'button' ? undefined : formControl?.required}
-			readonly={formControl?.is === 'button' ? undefined : formControl?.readonly}
-			placeholder={formControl?.is === 'input' ? formControl.placeholder : undefined}
+			required={formControl?.control === 'button' ? undefined : formControl?.required}
+			readonly={formControl?.control === 'button' ? undefined : formControl?.readonly}
+			placeholder={formControl?.control === 'input' ? formControl.placeholder : undefined}
 			checked={checkable ? (checked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
 			{...convertedProps}
