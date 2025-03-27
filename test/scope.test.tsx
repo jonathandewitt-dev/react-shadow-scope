@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
-import { cache, type CustomIntrinsicElement, Scope } from '../src/scope';
+import { stylesheetCache, type CustomIntrinsicElement, Scope } from '../src/scope';
 import { css } from '../src/css-utils';
 import { renderShadow } from './test-utils';
 
@@ -198,7 +198,7 @@ describe('Scope component', () => {
 					detail: { hrefs: ['/test1.css'] },
 				}),
 			);
-			expect(cache.stylesheets.has('/test1.css')).toBe(false);
+			expect(stylesheetCache.stylesheets.has('/test1.css')).toBe(false);
 		});
 
 		it('handles single stylesheet load', async () => {

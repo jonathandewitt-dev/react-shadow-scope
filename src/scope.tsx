@@ -88,7 +88,7 @@ type Cache = {
 
 // This object is kept in memory to prevent fetching and/or constructing the stylesheet(s) more than once.
 // ATTN: This is exported for testing purposes only. Do not export this in the main module.
-export const cache: Cache = {
+export const stylesheetCache: Cache = {
 	cv: crypto.randomUUID(),
 	base: css`
 		@layer {
@@ -142,8 +142,8 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
 	const allHrefs = React.useMemo(() => (typeof href !== 'undefined' ? [href, ...hrefs] : hrefs), [href, hrefs.join()]);
 	const pendingHrefs = React.useMemo(
-		() => allHrefs.filter((href) => !cache.stylesheets.has(href)),
-		[allHrefs.join(), cache.cv],
+		() => allHrefs.filter((href) => !stylesheetCache.stylesheets.has(href)),
+		[allHrefs.join(), stylesheetCache.cv],
 	);
 	const pending = pendingHrefs.length > 0 && !hrefsLoaded;
 	const [hrefStates, setHrefStates] = React.useState(
@@ -168,8 +168,8 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			if (link.sheet !== null) {
 				const constructedSheet = new CSSStyleSheet();
 				constructedSheet.replaceSync(getCSSText(link.sheet));
-				cache.stylesheets.set(href, constructedSheet);
-				cache.cv = crypto.randomUUID();
+				stylesheetCache.stylesheets.set(href, constructedSheet);
+				stylesheetCache.cv = crypto.randomUUID();
 			}
 			const _hrefStates = hrefStates.map((state) => ({
 				href: state.href,
@@ -192,16 +192,16 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 
 	const cssStyleSheets = React.useMemo(() => {
 		const _cssStyleSheets: StyleSheet[] = [];
-		if (normalize) _cssStyleSheets.push(cache.normalize);
-		_cssStyleSheets.push(cache.base, ...stylesheets);
+		if (normalize) _cssStyleSheets.push(stylesheetCache.normalize);
+		_cssStyleSheets.push(stylesheetCache.base, ...stylesheets);
 		if (pending) _cssStyleSheets.push(pendingStyles);
 		for (const href of allHrefs) {
-			const cachedSheet = cache.stylesheets.get(href);
+			const cachedSheet = stylesheetCache.stylesheets.get(href);
 			if (cachedSheet !== undefined) _cssStyleSheets.push(cachedSheet);
 		}
 		if (typeof stylesheet !== 'undefined') _cssStyleSheets.push(stylesheet);
 		return _cssStyleSheets;
-	}, [pending, styleText, cache.cv]);
+	}, [pending, styleText, stylesheetCache.cv]);
 
 	React.useLayoutEffect(() => {
 		class FormControlElement extends getFormControlElement() {}
