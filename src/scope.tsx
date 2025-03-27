@@ -226,6 +226,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	}, [formControlChecked]);
 
 	const convertedProps = className ? { class: className } : {};
+	const isButton = formControl?.control === 'button' || formControl?.control === 'image';
 
 	return (
 		<Tag
@@ -234,8 +235,8 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 			name={formControl?.name}
 			value={value}
 			disabled={formControl?.disabled}
-			required={formControl?.control === 'button' ? undefined : formControl?.required}
-			readonly={formControl?.control === 'button' ? undefined : formControl?.readonly}
+			required={isButton ? undefined : formControl?.required}
+			readonly={isButton ? undefined : formControl?.readonly}
 			placeholder={isPlaceholderFormControl(formControl) ? formControl.placeholder : undefined}
 			checked={checkable ? (checked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
