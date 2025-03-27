@@ -164,14 +164,17 @@ describe('Form Control Element', () => {
 		let element3: FormControlElement;
 
 		beforeEach(() => {
+			element = document.createElement('form-control') as FormControlElement;
+			element2 = document.createElement('form-control') as FormControlElement;
+			element3 = document.createElement('form-control') as FormControlElement;
+			element.attachShadow({ mode: 'open' });
+			document.body.appendChild(element);
+			document.body.appendChild(element2);
+			document.body.appendChild(element3);
 			element.formControl = {
 				is: 'radio',
 				name: 'test-radio',
 			};
-			element2 = document.createElement('form-control') as FormControlElement;
-			element3 = document.createElement('form-control') as FormControlElement;
-			document.body.appendChild(element2);
-			document.body.appendChild(element3);
 			element2.formControl = { ...element.formControl };
 			element3.formControl = { ...element.formControl };
 		});
@@ -183,16 +186,67 @@ describe('Form Control Element', () => {
 		});
 
 		it('unchecks other radio buttons in same group', () => {
+			// add a native radio
+			const radio = document.createElement('input');
+			radio.type = 'radio';
+			radio.setAttribute('name', 'test-radio');
+			document.body.appendChild(radio);
+
+			radio.checked = true;
 			element.checked = true;
 			element2.checked = true;
 			element3.checked = true;
 
+			expect(radio.checked).toBe(false);
 			expect(element.checked).toBe(false);
 			expect(element2.checked).toBe(false);
 			expect(element3.checked).toBe(true);
 
 			element2.remove();
 			element3.remove();
+		});
+
+		it('does not uncheck non-radios', () => {
+			// add a checkbox
+			const checkbox = document.createElement('input');
+			checkbox.type = 'checkbox';
+			checkbox.checked = true;
+			document.body.appendChild(checkbox);
+
+			// add a custom element
+			const customCheckbox = document.createElement('x-checkbox');
+			(customCheckbox as FormControlElement).checked = true;
+			customCheckbox.role = 'checkbox';
+			document.body.appendChild(customCheckbox);
+
+			element.checked = true;
+			expect(checkbox.checked).toBe(true);
+			expect(element.checked).toBe(true);
+			checkbox.remove();
+			customCheckbox.remove();
+		});
+
+		it('does not uncheck radios outside the same form', () => {
+			const form = document.createElement('form');
+			document.body.appendChild(form);
+
+			// add a native radio
+			const radio = document.createElement('input');
+			radio.type = 'radio';
+			radio.setAttribute('name', 'test-radio');
+			form.append(element, element2, radio);
+
+			radio.checked = true;
+			element.checked = true;
+			element2.checked = true;
+			element3.checked = true;
+
+			expect(radio.checked).toBe(false);
+			expect(element.checked).toBe(false);
+			expect(element2.checked).toBe(true);
+			expect(element3.checked).toBe(true);
+
+			form.remove();
 		});
 
 		it('handles inner radio', () => {
