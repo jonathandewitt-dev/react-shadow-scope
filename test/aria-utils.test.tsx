@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getFormControlElement, MISSING_MESSAGE } from '../src/aria-utils';
+import {
+	getFormControlElement,
+	MISSING_MESSAGE,
+	RANGE_OVERFLOW_MESSAGE,
+	RANGE_UNDERFLOW_MESSAGE,
+	STEP_MISMATCH_MESSAGE,
+	TYPE_MISMATCH_MESSAGE,
+} from '../src/aria-utils';
 
 describe('Form Control Element', () => {
 	class FormControlElement extends getFormControlElement() {}
@@ -20,7 +27,7 @@ describe('Form Control Element', () => {
 	describe('Basic functionality', () => {
 		it('initializes with default form control', () => {
 			expect(element.formControl).toEqual({
-				control: 'input',
+				control: 'text',
 				value: null,
 				name: '',
 				disabled: false,
@@ -106,6 +113,113 @@ describe('Form Control Element', () => {
 			expectValidity(false, element);
 			element.value = 'test';
 			expect(element.validity.valueMissing).toBe(false);
+			expectValidity(true, element);
+		});
+
+		it('updates validity for number inputs', async () => {
+			element.formControl = { control: 'number', min: '10', max: '20', step: '1' };
+			element.value = '9';
+			expect(element.validity.rangeUnderflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '10');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '21';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '20');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '15.5';
+			expect(element.validity.stepMismatch).toBe(true);
+			expect(element.validationMessage).toBe(STEP_MISMATCH_MESSAGE + '15 and 16');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '16';
+			expectValidity(true, element);
+		});
+
+		it('updates validity for date inputs', async () => {
+			element.formControl = { control: 'date', min: '2021-01-01', max: '2021-12-31' };
+			element.value = '2020-01-01';
+			expect(element.validity.rangeUnderflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01-01');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2022-01-01';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12-31');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2021-02-01';
+			expectValidity(true, element);
+		});
+
+		it('updates validity for time inputs', async () => {
+			element.formControl = { control: 'time', min: '00:00', max: '12:00' };
+			element.value = '23:00';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '12:00');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '11:00';
+			expectValidity(true, element);
+		});
+
+		it('updates validity for datetime-local inputs', async () => {
+			element.formControl = { control: 'datetime-local', min: '2021-01-01T00:00', max: '2021-12-31T12:00' };
+			element.value = '2020-01-01T00:00';
+			expect(element.validity.rangeUnderflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01-01T00:00');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2022-01-01T00:00';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12-31T12:00');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2021-02-01T00:00';
+			expectValidity(true, element);
+		});
+
+		it('updates validity for month inputs', async () => {
+			element.formControl = { control: 'month', min: '2021-01', max: '2021-12' };
+			element.value = '2020-01';
+			expect(element.validity.rangeUnderflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2022-01';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2021-02';
+			expectValidity(true, element);
+		});
+
+		it('updates validity for week inputs', async () => {
+			element.formControl = { control: 'week', min: '2021-W01', max: '2021-W52' };
+			element.value = '2020-W01';
+			expect(element.validity.rangeUnderflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-W01');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2022-W01';
+			expect(element.validity.rangeOverflow).toBe(true);
+			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-W52');
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '2021-W02';
+			expectValidity(true, element);
+		});
+
+		it('handles invalid values for range inputs', async () => {
+			element.formControl = { control: 'number', min: '10', max: '20', step: '1' };
+			element.value = 'test';
+			expect(element.validity.badInput).toBe(true);
+			expect(element.validationMessage).toBe(TYPE_MISMATCH_MESSAGE);
+			expectValidity(false, element);
+			await Promise.resolve();
+			element.value = '11';
 			expectValidity(true, element);
 		});
 	});
@@ -328,11 +442,42 @@ describe('Form Control Element', () => {
 		});
 	});
 
+	describe('Hidden input behavior', () => {
+		beforeEach(() => {
+			element.formControl = { control: 'hidden' };
+		});
+
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('none');
+		});
+	});
+
+	describe('All range inputs behavior', () => {
+		it('updates internals', () => {
+			element.formControl = { control: 'number' };
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'date' };
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'time' };
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'datetime-local' };
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'month' };
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'week' };
+			expect(internals.role).toBe('spinbutton');
+			element.formControl = { control: 'range' };
+			expect(internals.role).toBe('slider');
+		});
+	});
+
 	describe('Form reset behavior', () => {
 		let form: HTMLFormElement;
 
 		beforeEach(() => {
-			element.formControl = { control: 'input' };
+			element.formControl = { control: 'text' };
 			form = document.createElement('form');
 			form.appendChild(element);
 			document.body.appendChild(form);
@@ -359,7 +504,7 @@ describe('Form Control Element', () => {
 	describe('Attribute behavior', () => {
 		beforeEach(() => {
 			element = document.createElement('form-control') as FormControlElement;
-			element.formControl = { control: 'input' };
+			element.formControl = { control: 'text' };
 		});
 
 		it('handles value', async () => {
@@ -417,6 +562,27 @@ describe('Form Control Element', () => {
 			expect(element.role).toBe('button');
 			element.removeAttribute('role');
 			expect(element.role).toBe(null);
+		});
+
+		it('handles min', () => {
+			element.setAttribute('min', '1');
+			expect(element.min).toBe('1');
+			element.removeAttribute('min');
+			expect(element.min).toBe(null);
+		});
+
+		it('handles max', () => {
+			element.setAttribute('max', '10');
+			expect(element.max).toBe('10');
+			element.removeAttribute('max');
+			expect(element.max).toBe(null);
+		});
+
+		it('handles step', () => {
+			element.setAttribute('step', '2');
+			expect(element.step).toBe('2');
+			element.removeAttribute('step');
+			expect(element.step).toBe(null);
 		});
 	});
 });

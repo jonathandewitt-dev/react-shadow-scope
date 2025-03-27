@@ -23,23 +23,64 @@ type SharedFormControlProps = {
 	readonly?: boolean;
 };
 
-type SimpleFormControl = SharedFormControlProps & {
-	/**
-	 * The form control element to use.
-	 */
-	control: 'hidden' | 'select' | 'textarea';
-};
-
-type TextFormControl = SharedFormControlProps & {
-	/**
-	 * The form control element to use.
-	 */
-	control: 'input';
+type PlaceholderFormControlProps = {
 	/**
 	 * The placeholder of the form control element.
 	 */
 	placeholder?: string;
 };
+
+type RangeFormControlProps = {
+	/**
+	 * The minimum value of the form control element.
+	 */
+	min?: string | number;
+	/**
+	 * The maximum value of the form control element.
+	 */
+	max?: string | number;
+	/**
+	 * The step value of the form control element.
+	 */
+	step?: string | number;
+};
+
+type SimpleFormControl = SharedFormControlProps & {
+	/**
+	 * The form control element to use.
+	 */
+	control: 'hidden' | 'select' | 'textarea' | 'file' | 'color';
+};
+
+const RANGE_CONTROLS = ['range', 'time', 'date', 'datetime-local', 'month', 'week'] as const;
+
+const isRangeOrNumber = (formControl: FormControl): formControl is RangeFormControl | NumberFormControl =>
+	formControl.control === 'number' || RANGE_CONTROLS.includes(formControl.control as (typeof RANGE_CONTROLS)[number]);
+
+type RangeFormControl = SharedFormControlProps &
+	RangeFormControlProps & {
+		/**
+		 * The form control element to use.
+		 */
+		control: (typeof RANGE_CONTROLS)[number];
+	};
+
+type NumberFormControl = SharedFormControlProps &
+	RangeFormControlProps &
+	PlaceholderFormControlProps & {
+		/**
+		 * The form control element to use.
+		 */
+		control: 'number';
+	};
+
+type TextFormControl = SharedFormControlProps &
+	PlaceholderFormControlProps & {
+		/**
+		 * The form control element to use.
+		 */
+		control: 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
+	};
 
 type CheckboxFormControl = SharedFormControlProps & {
 	/**
@@ -60,21 +101,27 @@ type ButtonFormControl = SharedFormControlProps & {
 	/**
 	 * The form control element to use.
 	 */
-	control: 'button';
+	control: 'button' | 'image';
 	/**
 	 * The type of the button element.
 	 *
 	 * @defaultValue `'button'`
 	 */
-	type?: 'button' | 'submit';
+	type?: 'button' | 'submit' | 'reset';
 };
 
-export type FormControl = TextFormControl | CheckboxFormControl | ButtonFormControl | SimpleFormControl;
+export type FormControl =
+	| TextFormControl
+	| CheckboxFormControl
+	| ButtonFormControl
+	| RangeFormControl
+	| NumberFormControl
+	| SimpleFormControl;
 
 export type HTMLFormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 const DEFAULT_FORM_CONTROL: FormControl = {
-	control: 'input',
+	control: 'text',
 	value: null,
 	name: '',
 	disabled: false,
@@ -83,6 +130,10 @@ const DEFAULT_FORM_CONTROL: FormControl = {
 };
 
 export const MISSING_MESSAGE = 'Please fill out this field.';
+export const RANGE_UNDERFLOW_MESSAGE = 'Value must be greater than or equal to ';
+export const RANGE_OVERFLOW_MESSAGE = 'Value must be less than or equal to ';
+export const STEP_MISMATCH_MESSAGE = 'Please enter a valid value. The two nearest valid values are ';
+export const TYPE_MISMATCH_MESSAGE = 'Please enter a valid value.';
 
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
@@ -204,6 +255,30 @@ export const getFormControlElement = () =>
 			return this.#internals.ariaPlaceholder;
 		}
 
+		get min() {
+			return this.#internals.ariaValueMin;
+		}
+		set min(newValue: string | null) {
+			this.#internals.ariaValueMin = newValue;
+			this.#updateValidity();
+		}
+
+		get max() {
+			return this.#internals.ariaValueMax;
+		}
+		set max(newValue: string | null) {
+			this.#internals.ariaValueMax = newValue;
+			this.#updateValidity();
+		}
+
+		get step() {
+			return this.#internals.ariaValueNow;
+		}
+		set step(newValue: string | null) {
+			this.#internals.ariaValueNow = newValue;
+			this.#updateValidity();
+		}
+
 		#handleClick = (() => {
 			if (this.#formControl.control !== 'button') return;
 			const type = this.#formControl.type ?? 'submit';
@@ -250,6 +325,7 @@ export const getFormControlElement = () =>
 			this.#updateValidity();
 			form?.addEventListener('reset', this.#handleReset);
 			switch (this.#formControl?.control) {
+				case 'image':
 				case 'button':
 					this.#internals.role = 'button';
 					this.addEventListener('mousedown', () => {
@@ -285,9 +361,29 @@ export const getFormControlElement = () =>
 					this.#internals.role = 'textbox';
 					this.#internals.ariaMultiLine = 'true';
 					break;
-				case 'input':
+				case 'password':
+				case 'email':
+				case 'tel':
+				case 'url':
+				case 'search':
+				case 'text':
 					this.#internals.role = 'textbox';
 					this.#internals.ariaPlaceholder = this.#formControl.placeholder ?? null;
+					break;
+				case 'number':
+				case 'range':
+				case 'time':
+				case 'date':
+				case 'datetime-local':
+				case 'month':
+				case 'week':
+					this.#internals.role = this.#formControl.control === 'range' ? 'slider' : 'spinbutton';
+					this.#internals.ariaValueMin = String(this.#formControl.min) ?? null;
+					this.#internals.ariaValueMax = String(this.#formControl.max) ?? null;
+					this.#internals.ariaValueNow = String(this.#formControl.step) ?? null;
+					break;
+				case 'hidden':
+					this.#internals.role = 'none';
 					break;
 			}
 		}
@@ -295,27 +391,122 @@ export const getFormControlElement = () =>
 		get #input(): HTMLFormControlElement | undefined {
 			if (this.#formControl.control === 'button') return;
 			const tagnameMap = {
-				input: 'input',
+				text: 'input',
 				checkbox: 'input',
 				radio: 'input',
 				hidden: 'input',
+				password: 'input',
+				email: 'input',
+				number: 'input',
+				tel: 'input',
+				url: 'input',
+				image: 'input',
+				file: 'input',
+				month: 'input',
+				week: 'input',
+				date: 'input',
+				'datetime-local': 'input',
+				color: 'input',
+				range: 'input',
+				time: 'input',
+				search: 'input',
 				textarea: 'textarea',
 				select: 'select',
 			} as const;
 			const tagname = tagnameMap[this.#formControl.control];
-			return this.shadowRoot?.querySelector(tagname) ?? undefined;
+			const selector = tagname === 'input' ? `input[type="${this.#formControl.control}"]` : tagname;
+			return this.shadowRoot?.querySelector(selector) ?? undefined;
+		}
+
+		#convertForComparison(_value: number | FormControlValue): number | Date {
+			const value = typeof _value === 'number' ? String(_value) : _value;
+			if (typeof value !== 'string') return 0;
+			if (this.#formControl.control === 'date') {
+				return new Date(value);
+			}
+			if (this.#formControl.control === 'time') {
+				const today = new Date();
+				const iso = today.toISOString().slice(0, 10);
+				return new Date(`${iso}T${value}`);
+			}
+			if (this.#formControl.control === 'datetime-local') {
+				return new Date(value);
+			}
+			if (this.#formControl.control === 'month') {
+				return new Date(`${value}-01`);
+			}
+			if (this.#formControl.control === 'week') {
+				const decimal = value.replace('-W', '.');
+				return decimal === '' ? 0 : Number(decimal);
+			}
+			return Number(value);
 		}
 
 		#updateValidity() {
 			const input = this.#input;
 			const empty = this.#value === null || this.#value === '';
 			const valueMissing = this.#internals.ariaRequired === 'true' && empty;
+
+			// check for range control validity
+			const rangeUnderflow =
+				isRangeOrNumber(this.#formControl) &&
+				this.#value !== null &&
+				this.#formControl.min !== undefined &&
+				this.#convertForComparison(this.#value) < this.#convertForComparison(this.#formControl.min);
+			const rangeOverflow =
+				isRangeOrNumber(this.#formControl) &&
+				this.#value !== null &&
+				this.#formControl.max !== undefined &&
+				this.#convertForComparison(this.#value) > this.#convertForComparison(this.#formControl.max);
+			let numbers = { min: NaN, max: NaN, step: NaN, value: NaN };
+			if (this.#formControl.control === 'number') {
+				numbers = {
+					min: Number(this.#formControl.min),
+					max: Number(this.#formControl.max),
+					step: Number(this.#formControl.step),
+					value: Number(this.#value),
+				};
+			}
+			const stepMismatch =
+				this.#formControl.control === 'number' &&
+				this.#value !== null &&
+				this.#formControl.step !== undefined &&
+				!isNaN(numbers.min) &&
+				!isNaN(numbers.step) &&
+				!isNaN(numbers.value) &&
+				numbers.value % numbers.step !== 0;
+			const badInput = this.#formControl.control === 'number' && isNaN(numbers.value);
+
+			// determine the validity message
+			let message = '';
+			if (valueMissing) message = MISSING_MESSAGE;
+			if (isRangeOrNumber(this.#formControl) && rangeUnderflow)
+				message = RANGE_UNDERFLOW_MESSAGE + this.#formControl.min;
+			if (isRangeOrNumber(this.#formControl) && rangeOverflow) message = RANGE_OVERFLOW_MESSAGE + this.#formControl.max;
+			if (isRangeOrNumber(this.#formControl) && stepMismatch) {
+				const min = Number(this.#formControl.min);
+				const max = Number(this.#formControl.max);
+				const step = Number(this.#formControl.step);
+				const value = Number(this.#value);
+				if (!isNaN(min) || !isNaN(max) || !isNaN(step) || !isNaN(value)) {
+					let lowNearest = min;
+					let highNearest = max;
+					for (let i = min; i <= value + step; i += step) {
+						if (i < value) lowNearest = i;
+						if (i > value && highNearest === max) highNearest = i;
+					}
+					message = STEP_MISMATCH_MESSAGE + lowNearest + ' and ' + highNearest;
+				}
+			}
+			if (badInput) message = TYPE_MISMATCH_MESSAGE;
+
+			// set the validity state
 			if (input === undefined) {
-				this.#internals.setValidity({ valueMissing }, MISSING_MESSAGE);
+				this.#internals.setValidity({ valueMissing, rangeOverflow, rangeUnderflow, stepMismatch, badInput }, message);
 			} else {
 				this.#internals.setValidity(
-					{ ...input.validity, valueMissing },
-					valueMissing ? MISSING_MESSAGE : input.validationMessage,
+					{ ...input.validity, valueMissing, rangeOverflow, rangeUnderflow, stepMismatch, badInput },
+					message !== '' ? message : input.validationMessage,
 					input,
 				);
 			}
@@ -360,7 +551,19 @@ export const getFormControlElement = () =>
 			this.#resetInternals();
 		}
 
-		static observedAttributes = ['value', 'name', 'checked', 'disabled', 'required', 'readonly', 'placeholder', 'role'];
+		static observedAttributes = [
+			'value',
+			'name',
+			'checked',
+			'disabled',
+			'required',
+			'readonly',
+			'placeholder',
+			'role',
+			'min',
+			'max',
+			'step',
+		];
 
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
@@ -373,5 +576,8 @@ export const getFormControlElement = () =>
 			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
 			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
 			if (name === 'role') this.role = newValue;
+			if (name === 'min') this.min = newValue;
+			if (name === 'max') this.max = newValue;
+			if (name === 'step') this.step = newValue;
 		}
 	};
