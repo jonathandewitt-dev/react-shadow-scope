@@ -156,8 +156,6 @@ export const getFormControlElement = () =>
 			this.#initInternals();
 		}
 
-		#busy = false;
-
 		#name?: string;
 		set name(newValue: string | undefined) {
 			this.#name = newValue;
@@ -173,16 +171,19 @@ export const getFormControlElement = () =>
 		}
 
 		#initialValue: FormControlValue = null;
+
+		#valueSource = 'property';
 		#value: FormControlValue = null;
 		set value(newValue: FormControlValue) {
-			if (this.#busy) return;
-			this.#busy = true;
+			if (this.#value === newValue) return;
 			this.#value = newValue;
+			if (this.#input !== undefined && this.#valueSource !== 'input') {
+				// @ts-expect-error // value accepts more than just strings
+				this.#input.value = newValue;
+			}
 			this.#internals.setFormValue(newValue);
 			this.#updateValidity();
-			queueMicrotask(() => {
-				this.#busy = false;
-			});
+			this.#valueSource = 'property';
 		}
 		get value() {
 			return this.#value;
@@ -199,7 +200,9 @@ export const getFormControlElement = () =>
 			return this.#internals.form;
 		}
 
+		#checkedSource = 'property';
 		set checked(newValue: boolean) {
+			if (this.checked === newValue) return;
 			if (this.#formControl.control === 'radio') {
 				const parent = this.#internals.form ?? document;
 				const radios = parent.querySelectorAll<HTMLInputElement | FormControlElement>(
@@ -211,6 +214,7 @@ export const getFormControlElement = () =>
 					if (this.#internals.form !== radio.form) continue;
 					if (radio.role === 'radio' || (isInput && radio.type === 'radio')) {
 						if (radio.checked) {
+							this.#checkedSource = 'radio';
 							radio.checked = false;
 						}
 					}
@@ -220,14 +224,14 @@ export const getFormControlElement = () =>
 			if (
 				this.#input !== undefined &&
 				this.#input instanceof HTMLInputElement &&
-				this.#input.type === this.#formControl.control
+				this.#input.type === this.#formControl.control &&
+				this.#checkedSource !== 'input'
 			) {
-				console.log('setting checked', newValue);
 				this.#input.checked = newValue;
 			}
-			queueMicrotask(() => {
-				this.value = newValue ? (this.#initialValue ?? 'on') : null;
-			});
+			this.#valueSource = 'checked';
+			this.value = newValue ? (this.#initialValue ?? 'on') : null;
+			this.#checkedSource = 'property';
 		}
 		get checked() {
 			return this.#internals.ariaChecked === 'true';
@@ -286,18 +290,16 @@ export const getFormControlElement = () =>
 			this.#updateValidity();
 		}
 
-		#handleClick = (() => {
+		#handleSubmit = (() => {
 			if (this.#formControl.control !== 'button') return;
+			const form = this.#internals.form;
+			if (form === null) return;
 			const type = this.#formControl.type ?? 'submit';
-			if (type === 'submit') this.#internals.form?.requestSubmit();
+			if (type === 'submit') form.requestSubmit();
 		}).bind(this);
 
-		#handleEnter = ((event: KeyboardEvent) => {
-			if (event.key === 'Enter') this.#handleClick();
-		}).bind(this);
-
-		#handleReset = (() => {
-			this.value = this.#initialValue;
+		#handleKeyboardSubmit = ((event: KeyboardEvent) => {
+			if (event.key === 'Enter') this.#handleSubmit();
 		}).bind(this);
 
 		#resetInternals() {
@@ -313,8 +315,7 @@ export const getFormControlElement = () =>
 			this.#internals.ariaChecked = null;
 			this.#internals.ariaMultiLine = null;
 			this.#internals.ariaPlaceholder = null;
-			this.#internals.form?.removeEventListener('keydown', this.#handleEnter);
-			this.#internals.form?.removeEventListener('reset', this.#handleReset);
+			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
 		}
 
 		peekInternals() {
@@ -330,7 +331,6 @@ export const getFormControlElement = () =>
 			this.#internals.ariaRequired = String(this.#formControl.required ?? false);
 			this.#internals.ariaReadOnly = String(this.#formControl.readonly ?? false);
 			this.#updateValidity();
-			form?.addEventListener('reset', this.#handleReset);
 			switch (this.#formControl?.control) {
 				case 'image':
 				case 'button':
@@ -342,8 +342,8 @@ export const getFormControlElement = () =>
 						this.#internals.ariaPressed = 'false';
 					});
 					if (form === null) break;
-					this.addEventListener('click', this.#handleClick);
-					form.addEventListener('keydown', this.#handleEnter);
+					this.addEventListener('click', this.#handleSubmit);
+					form.addEventListener('keydown', this.#handleKeyboardSubmit);
 					break;
 				case 'select':
 					this.#internals.role = 'combobox';
@@ -354,14 +354,12 @@ export const getFormControlElement = () =>
 					break;
 				case 'checkbox':
 					this.#internals.role = 'checkbox';
-					this.#internals.ariaChecked =
-						this.#formControl.checked || this.#formControl.defaultChecked ? 'true' : 'false';
+					this.#checkedSource = 'init-checkbox';
 					this.checked = (this.#formControl.checked ?? false) || (this.#formControl.defaultChecked ?? false);
 					break;
 				case 'radio':
 					this.#internals.role = 'radio';
-					this.#internals.ariaChecked =
-						this.#formControl.checked || this.#formControl.defaultChecked ? 'true' : 'false';
+					this.#checkedSource = 'init-radio';
 					this.checked = (this.#formControl.checked ?? false) || (this.#formControl.defaultChecked ?? false);
 					break;
 				case 'textarea':
@@ -542,17 +540,32 @@ export const getFormControlElement = () =>
 		}
 
 		formResetCallback() {
-			this.#busy = false;
 			if ('defaultChecked' in this.#formControl) {
+				this.#checkedSource = 'reset';
 				this.checked = this.#formControl.defaultChecked ?? false;
 			} else {
+				this.#valueSource = 'reset';
 				this.value = this.#initialValue;
 			}
 			this.#initInternals();
 		}
 
+		#syncValue = (() => {
+			if (this.#input === undefined) return;
+			this.#valueSource = 'input';
+			this.value = this.#input.value;
+			const checkable =
+				(this.#input.type === 'checkbox' || this.#input.type === 'radio') && this.#input instanceof HTMLInputElement;
+			if (checkable) {
+				this.#checkedSource = 'input';
+				this.checked = this.#input.checked;
+			}
+		}).bind(this);
+
 		connectedCallback() {
 			this.#initInternals();
+			this.#input?.addEventListener('input', this.#syncValue);
+			this.#input?.addEventListener('change', this.#syncValue);
 		}
 
 		disconnectedCallback() {
@@ -576,9 +589,15 @@ export const getFormControlElement = () =>
 		attributeChangedCallback(name: string, oldValue: string, newValue: string | null) {
 			if (oldValue === newValue) return;
 			const bool = newValue !== null;
-			if (name === 'value') this.value = newValue;
+			if (name === 'value') {
+				this.#valueSource = 'attribute';
+				this.value = newValue;
+			}
+			if (name === 'checked') {
+				this.#checkedSource = 'attribute';
+				this.checked = bool;
+			}
 			if (name === 'name') this.#name = newValue ?? undefined;
-			if (name === 'checked') this.checked = bool;
 			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
 			if (name === 'required') this.#internals.ariaRequired = String(bool);
 			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
