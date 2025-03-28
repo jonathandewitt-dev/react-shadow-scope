@@ -258,99 +258,105 @@ But at the point you're taking full advantage these additional features, you may
 
 ### Form Controls
 
-When you use shadow DOM, form elements inside the shadow root can't naturally connect to forms outside of it. This means features like form validation and submission won't work by default. The `formControl` prop solves this problem by making the host element itself act as the form control.
+When you use shadow DOM, form elements inside the shadow root can't naturally connect to forms outside of it. This means features like form validation and submission won't work by default. The `FormControl` component solves this problem by creating a custom element that acts as the form control.
 
 #### Basic Usage
 
 ```jsx
+import { FormControl } from 'react-shadow-scope';
+
 // A basic text input
-<Scope formControl={{ control: 'text', value: inputValue }}>
+<FormControl
+  tag="x-input"
+  control="text"
+  value={inputValue}
+>
   <input type="text" onInput={handleInput} />
-</Scope>
+</FormControl>
 
 // A checkbox
-<Scope formControl={{
-  control: 'checkbox',
-  checked: isChecked,
-  name: 'agree'
-}}>
+<FormControl
+  tag="x-checkbox"
+  control="checkbox"
+  checked={isChecked}
+  name="agree"
+>
   <input type="checkbox" onChange={onChange} />
-</Scope>
+</FormControl>
 
 // A submit button
-<Scope formControl={{ control: 'button' }}>
+<FormControl tag="x-button" control="button">
   <button>Submit</button>
-</Scope>
+</FormControl>
 ```
 
-> Note that you may omit the nested form elements, but you will be responsible for recreating their features manually. It's common to simply nest a corresponding element according to the `control` field, and update the host element's value when it changes. The library does its best to keep the inner control in sync with its host element.
+> **Note**
+> While you can build your own custom controls using this API, it's recommended to nest a corresponding input with a matching type (or tag) inside. The library will keep the inner control in sync with its host element automatically.
 
 #### Control Types
 
-The `formControl` prop accepts different configurations based on the type of control:
+The `FormControl` component accepts different configurations based on the type of control:
 
-- **Text Controls**: `text`, `password`, `email`, `tel`, `url`, `search`
+- **Common Controls**: `text`, `password`, `email`, `tel`, `url`, `search`
 
   ```jsx
-  formControl={{
-    control: 'text',         // or any text type
-    value: string,           // current value
-    placeholder: string,     // optional placeholder text
-    required: boolean,       // is the field required?
-    readonly: boolean,       // is the field read-only?
-    disabled: boolean        // is the field disabled?
-  }}
+  <FormControl
+    tag="x-input"
+    control="text" // or any text type
+    value={string} // current value
+    name={string} // field name
+    placeholder={string} // optional placeholder text
+    required={boolean} // is the field required?
+    readonly={boolean} // is the field read-only?
+    disabled={boolean} // is the field disabled?
+  />
   ```
 
 - **Checkbox/Radio**: `checkbox`, `radio`
 
   ```jsx
-  formControl={{
-    control: 'checkbox',      // or 'radio'
-    checked: boolean,         // is it checked?
-    name: string,             // field name (important for radio groups)
-    required: boolean,        // is it required?
-    disabled: boolean         // is it disabled?
-  }}
+  <FormControl
+    tag="x-input"
+    control="checkbox" // or 'radio'
+    checked={boolean} // is it checked?
+  />
   ```
 
-- **Button/Image**: `<button>`, `image`
+- **Number/Range/Date**: `number`, `range`, `date`, `time`, `datetime-local`, `month`, `week`
 
   ```jsx
-  formControl={{
-    control: 'button',        // or 'image'
-    type: 'button',           // or 'submit', 'reset'
-  }}
+  <FormControl
+    tag="x-input"
+    control="number" // or any range/date type
+    value={string} // current value
+    min={string | number} // minimum value
+    max={string | number} // maximum value
+    step={string | number} // step increment
+  />
   ```
 
-- **Number/Range**: `number`, `range`, `date`, `time`, `datetime-local`, `month`, `week`
+- **Buttons**: `<button>`, `image`
 
   ```jsx
-  formControl={{
-    control: 'number',        // or any range type
-    value: string,            // current value
-    min: string | number,     // minimum value
-    max: string | number,     // maximum value
-    step: string | number,    // step increment
-    required: boolean,        // is it required?
-    disabled: boolean         // is it disabled?
-  }}
+  <FormControl
+    tag="x-input"
+    control="button" // or image
+    type="button" // or submit, reset
+  />
   ```
 
 - **And so on**, including `hidden`, `<select>`, `<textarea>`, `file`, `color`,
 
-The form control will automatically:
+The form control automatically:
 
-- Register with parent forms
-- Handle validation states
-- Support form submission
-- Work with form reset events
-- Manage disabled states
-- Handle required field validation
+- Registers with parent forms
+- Handles validation states
+- Supports form submission
+- Works with form reset events
+- Manages disabled states
+- Handles required field validation
 
-All of this happens while maintaining shadow DOM encapsulation for your styles.
-
----
+All while maintaining shadow DOM encapsulation for your styles.
 
 ### Templates
 
