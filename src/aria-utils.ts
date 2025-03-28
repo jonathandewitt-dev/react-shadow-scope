@@ -201,36 +201,32 @@ export const getFormControlElement = () =>
 		}
 
 		#checkedSource = 'property';
-		set checked(newValue: boolean) {
-			if (this.checked === newValue) return;
-			if (this.#formControl.control === 'radio') {
+		set checked(newChecked: boolean) {
+			if (this.#internals.ariaChecked !== null && this.checked === newChecked) return;
+			this.#internals.ariaChecked = String(newChecked);
+			if (newChecked && this.#formControl.control === 'radio') {
 				const parent = this.#internals.form ?? document;
 				const radios = parent.querySelectorAll<HTMLInputElement | FormControlElement>(
 					`[name="${this.#formControl.name}"]`,
 				);
 				for (const radio of radios) {
-					if (radio === this) continue;
+					if (radio === this || this.#internals.form !== radio.form) continue;
 					const isInput = radio instanceof HTMLInputElement;
-					if (this.#internals.form !== radio.form) continue;
 					if (radio.role === 'radio' || (isInput && radio.type === 'radio')) {
-						if (radio.checked) {
-							this.#checkedSource = 'radio';
-							radio.checked = false;
-						}
+						if (radio.checked) radio.checked = false;
 					}
 				}
 			}
-			this.#internals.ariaChecked = newValue ? 'true' : 'false';
 			if (
 				this.#input !== undefined &&
 				this.#input instanceof HTMLInputElement &&
 				this.#input.type === this.#formControl.control &&
 				this.#checkedSource !== 'input'
 			) {
-				this.#input.checked = newValue;
+				this.#input.checked = newChecked;
 			}
 			this.#valueSource = 'checked';
-			this.value = newValue ? (this.#initialValue ?? 'on') : null;
+			this.value = newChecked ? (this.#initialValue ?? 'on') : null;
 			this.#checkedSource = 'property';
 		}
 		get checked() {

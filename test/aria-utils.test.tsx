@@ -387,14 +387,20 @@ describe('Form Control Element', () => {
 			radio.setAttribute('name', 'test-radio');
 			form.append(element, element2, radio);
 
+			// within the form
 			radio.checked = true;
 			element.checked = true;
 			element2.checked = true;
+
+			// orphan radio
 			element3.checked = true;
 
+			// within the form
 			expect(radio.checked).toBe(false);
 			expect(element.checked).toBe(false);
 			expect(element2.checked).toBe(true);
+
+			// orphan radio
 			expect(element3.checked).toBe(true);
 
 			form.remove();
