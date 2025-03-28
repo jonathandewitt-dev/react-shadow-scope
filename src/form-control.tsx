@@ -7,7 +7,7 @@ import {
 	getFormControlElement,
 	isPlaceholderFormControl,
 	isRangeOrNumberFormControl,
-} from './aria-utils';
+} from './form-control-element';
 
 export type FormControlProps = ScopeProps &
 	FormControlType & {

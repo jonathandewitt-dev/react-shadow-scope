@@ -7,7 +7,7 @@ import {
 	RANGE_UNDERFLOW_MESSAGE,
 	STEP_MISMATCH_MESSAGE,
 	TYPE_MISMATCH_MESSAGE,
-} from '../src/aria-utils';
+} from '../src/form-control-element';
 
 describe('Form Control Element', () => {
 	class FormControlElement extends getFormControlElement() {}
