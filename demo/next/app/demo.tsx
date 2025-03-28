@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Scope, useCSS, Template, Tailwind, CustomIntrinsicElement, css } from 'react-shadow-scope';
+import { Scope, FormControl, useCSS, Template, Tailwind, CustomIntrinsicElement, css } from 'react-shadow-scope';
 
 declare global {
 	namespace ReactShadowScope {
@@ -105,10 +105,6 @@ export default function Demo() {
 						</div>
 					</article>
 				</Template>
-				{/**
-				 * Everything below is technically in the light DOM, it just gets reflected in the slots of the shadow DOM. Therefore, this markup is exposed to the global scope.
-				 * @see https://stackoverflow.com/questions/61626493/slotted-css-selector-for-nested-children-in-shadowdom-slot/61631668#61631668
-				 */}
 				<span slot="heading">Title Here</span>
 				<p>
 					This card was rendered using the traditional declarative shadow DOM approach. Not everyone is a fan, but it's
@@ -136,12 +132,15 @@ export default function Demo() {
 					Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM
 					encapsulating HTML form controls.
 				</p>
-				<Scope tag="my-input" formControl={{ control: 'text', value, name: 'my-input' }}>
-					<input onChange={(event) => setValue(event.currentTarget.value)} required />
-				</Scope>
-				<Scope
+				<FormControl control="text" value={value} name="my-input" required tag="my-input">
+					<input onChange={(event) => setValue(event.currentTarget.value)} />
+				</FormControl>
+				<FormControl
+					control="text"
+					value={value2}
+					name="my-custom-input"
+					required
 					tag="my-custom-input"
-					formControl={{ control: 'text', value: value2, name: 'my-custom-input', required: true }}
 					stylesheet={css2`
 						:host {
 							display: inline-block;
@@ -156,27 +155,24 @@ export default function Demo() {
 					`}
 				>
 					<div contentEditable onInput={(event) => setValue2(event.currentTarget.textContent ?? '')}></div>
-				</Scope>
-				<Scope tag="my-select" formControl={{ control: 'select', value: selected, name: 'my-select', required: true }}>
+				</FormControl>
+				<FormControl control="select" value={selected} name="my-select" required tag="my-select">
 					<select onChange={(event) => setSelected(event.currentTarget.value)}>
 						<option></option>
 						<option value="1">One</option>
 						<option value="2">Two</option>
 						<option value="3">Three</option>
 					</select>
-				</Scope>
-				<Scope tag="my-checkbox" formControl={{ control: 'checkbox', value: 'checked', checked, name: 'my-checkbox' }}>
+				</FormControl>
+				<FormControl control="checkbox" value="checked" checked={checked} name="my-checkbox" tag="my-checkbox">
 					<input
 						type="checkbox"
 						onChange={(event) => {
 							setChecked(event.target.checked);
 						}}
 					/>
-				</Scope>
-				<Scope
-					tag="my-radio"
-					formControl={{ control: 'radio', value: 'one', checked: radio === 'one', name: 'my-radio' }}
-				>
+				</FormControl>
+				<FormControl control="radio" value="one" checked={radio === 'one'} name="my-radio" tag="my-radio">
 					<input
 						type="radio"
 						checked={radio === 'one'}
@@ -184,11 +180,8 @@ export default function Demo() {
 							setRadio('one');
 						}}
 					/>
-				</Scope>
-				<Scope
-					tag="my-radio"
-					formControl={{ control: 'radio', value: 'two', checked: radio === 'two', name: 'my-radio' }}
-				>
+				</FormControl>
+				<FormControl control="radio" value="two" checked={radio === 'two'} name="my-radio" tag="my-radio">
 					<input
 						type="radio"
 						checked={radio === 'two'}
@@ -196,10 +189,10 @@ export default function Demo() {
 							setRadio('two');
 						}}
 					/>
-				</Scope>
-				<Scope tag="my-button" formControl={{ control: 'button', type: 'submit' }}>
+				</FormControl>
+				<FormControl control="button" type="submit" tag="my-button">
 					<button>Submit</button>
-				</Scope>
+				</FormControl>
 			</form>
 		</div>
 	);
