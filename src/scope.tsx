@@ -103,6 +103,11 @@ export const stylesheetCache: Cache = {
 	stylesheets: new Map(),
 };
 
+const getLocation = () => {
+	if (typeof location === 'undefined') return '';
+	return location.origin;
+};
+
 /**
  * Creates a shadow DOM encapsulated scope for CSS.
  *
@@ -141,7 +146,7 @@ export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwarded
 	);
 	const pending = pendingHrefs.length > 0 && !hrefsLoaded;
 	const [hrefStates, setHrefStates] = React.useState(
-		pendingHrefs.map((href) => ({ href: href.replace(location.origin, ''), loaded: false })),
+		pendingHrefs.map((href) => ({ href: href.replace(getLocation(), ''), loaded: false })),
 	);
 
 	const tagRef = React.useRef<HTMLElement | null>(null);

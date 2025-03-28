@@ -142,6 +142,7 @@ const ClientTemplate = React.forwardRef<HTMLTemplateElement, TemplateProps>((pro
 
 		const parent = templateRef.current!.parentElement ?? null;
 		if (parent === null) return;
+		if (parent.shadowRoot !== null) parent.shadowRoot.replaceChildren();
 
 		queueMicrotask(() => {
 			ReactDOM.flushSync(() => {
