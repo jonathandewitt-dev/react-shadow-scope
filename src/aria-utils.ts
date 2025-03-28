@@ -47,7 +47,7 @@ type RangeFormControlProps = {
 
 type SimpleFormControl = SharedFormControlProps & {
 	/**
-	 * The form control element to use.
+	 * The input type or tag name of the form control element.
 	 */
 	control: 'hidden' | 'select' | 'textarea' | 'file' | 'color';
 };
@@ -62,7 +62,7 @@ export const isRangeOrNumberFormControl = (
 type RangeFormControl = SharedFormControlProps &
 	RangeFormControlProps & {
 		/**
-		 * The form control element to use.
+		 * The input type or tag name of the form control element.
 		 */
 		control: (typeof RANGE_CONTROLS)[number];
 	};
@@ -71,7 +71,7 @@ type NumberFormControl = SharedFormControlProps &
 	RangeFormControlProps &
 	PlaceholderFormControlProps & {
 		/**
-		 * The form control element to use.
+		 * The input type or tag name of the form control element.
 		 */
 		control: 'number';
 	};
@@ -79,7 +79,7 @@ type NumberFormControl = SharedFormControlProps &
 type TextFormControl = SharedFormControlProps &
 	PlaceholderFormControlProps & {
 		/**
-		 * The form control element to use.
+		 * The input type or tag name of the form control element.
 		 */
 		control: 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
 	};
@@ -92,7 +92,7 @@ export const isPlaceholderFormControl = (
 
 type CheckboxFormControl = SharedFormControlProps & {
 	/**
-	 * The form control element to use.
+	 * The input type or tag name of the form control element.
 	 */
 	control: 'checkbox' | 'radio';
 	/**
@@ -107,7 +107,7 @@ type CheckboxFormControl = SharedFormControlProps & {
 
 type ButtonFormControl = SharedFormControlProps & {
 	/**
-	 * The form control element to use.
+	 * The input type or tag name of the form control element.
 	 */
 	control: 'button' | 'image';
 	/**
