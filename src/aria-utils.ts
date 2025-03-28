@@ -145,7 +145,6 @@ export const TYPE_MISMATCH_MESSAGE = 'Please enter a valid value.';
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
-		#internals = this.attachInternals();
 		#formControl: FormControlType = DEFAULT_FORM_CONTROL;
 
 		get formControl() {
@@ -298,21 +297,15 @@ export const getFormControlElement = () =>
 			if (event.key === 'Enter') this.#handleSubmit();
 		}).bind(this);
 
-		#resetInternals() {
-			this.#internals.role = null;
-			this.#internals.ariaDisabled = null;
-			this.#internals.ariaRequired = null;
-			this.#internals.ariaReadOnly = null;
-			this.#internals.ariaPressed = null;
-			this.#internals.ariaExpanded = null;
-			this.#internals.ariaHasPopup = null;
-			this.#internals.ariaAutoComplete = null;
-			this.#internals.ariaMultiSelectable = null;
-			this.#internals.ariaChecked = null;
-			this.#internals.ariaMultiLine = null;
-			this.#internals.ariaPlaceholder = null;
-			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
-		}
+		#handleButtonPressed = (() => {
+			this.#internals.ariaPressed = 'true';
+		}).bind(this);
+
+		#handleButtonReleased = (() => {
+			this.#internals.ariaPressed = 'false';
+		}).bind(this);
+
+		#internals = this.attachInternals();
 
 		peekInternals() {
 			return this.#internals;
@@ -331,12 +324,8 @@ export const getFormControlElement = () =>
 				case 'image':
 				case 'button':
 					this.#internals.role = 'button';
-					this.addEventListener('mousedown', () => {
-						this.#internals.ariaPressed = 'true';
-					});
-					this.addEventListener('mouseup', () => {
-						this.#internals.ariaPressed = 'false';
-					});
+					this.addEventListener('mousedown', this.#handleButtonPressed);
+					this.addEventListener('mouseup', this.#handleButtonReleased);
 					if (form === null) break;
 					this.addEventListener('click', this.#handleSubmit);
 					form.addEventListener('keydown', this.#handleKeyboardSubmit);
@@ -387,6 +376,25 @@ export const getFormControlElement = () =>
 					this.#internals.role = 'none';
 					break;
 			}
+		}
+
+		#resetInternals() {
+			this.#internals.role = null;
+			this.#internals.ariaDisabled = null;
+			this.#internals.ariaRequired = null;
+			this.#internals.ariaReadOnly = null;
+			this.#internals.ariaPressed = null;
+			this.#internals.ariaExpanded = null;
+			this.#internals.ariaHasPopup = null;
+			this.#internals.ariaAutoComplete = null;
+			this.#internals.ariaMultiSelectable = null;
+			this.#internals.ariaChecked = null;
+			this.#internals.ariaMultiLine = null;
+			this.#internals.ariaPlaceholder = null;
+			this.removeEventListener('mousedown', this.#handleButtonPressed);
+			this.removeEventListener('mouseup', this.#handleButtonReleased);
+			this.removeEventListener('click', this.#handleSubmit);
+			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
 		}
 
 		get #input(): HTMLFormControlElement | undefined {
@@ -547,14 +555,12 @@ export const getFormControlElement = () =>
 		}
 
 		#syncValue = (() => {
-			if (this.#input === undefined) return;
+			const input = this.#input!;
 			this.#valueSource = 'input';
-			this.value = this.#input.value;
-			const checkable =
-				(this.#input.type === 'checkbox' || this.#input.type === 'radio') && this.#input instanceof HTMLInputElement;
-			if (checkable) {
+			this.value = input.value;
+			if (input instanceof HTMLInputElement && (input.type === 'checkbox' || input.type === 'radio')) {
 				this.#checkedSource = 'input';
-				this.checked = this.#input.checked;
+				this.checked = input.checked;
 			}
 		}).bind(this);
 
