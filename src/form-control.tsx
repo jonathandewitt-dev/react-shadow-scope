@@ -38,7 +38,7 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 	if (value !== undefined) formControl.value = value;
 	if (checked !== undefined && checkable) formControl.checked = checked;
 	if (defaultChecked !== undefined && checkable) formControl.defaultChecked = defaultChecked;
-	formControl.name = name ?? id;
+	formControl.name = name ?? (isButton ? undefined : id);
 	if (disabled !== undefined) formControl.disabled = disabled;
 	if (required !== undefined) formControl.required = required;
 	if (readonly !== undefined) formControl.readonly = readonly;
