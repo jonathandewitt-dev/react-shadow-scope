@@ -335,7 +335,7 @@ export const getFormControlElement = () =>
 					this.addEventListener('mousedown', this.#handleButtonPressed);
 					this.addEventListener('mouseup', this.#handleButtonReleased);
 					if (form === null) break;
-					this.onclick = this.#handleClickSubmit;
+					this.addEventListener('click', this.#handleClickSubmit);
 					form.addEventListener('keydown', this.#handleKeyboardSubmit);
 					break;
 				case 'select':
