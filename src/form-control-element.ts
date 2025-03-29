@@ -145,6 +145,7 @@ export const TYPE_MISMATCH_MESSAGE = 'Please enter a valid value.';
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
 		static formAssociated = true;
+		#internals = this.attachInternals();
 		#formControl: FormControlType = DEFAULT_FORM_CONTROL;
 
 		get formControl() {
@@ -175,12 +176,12 @@ export const getFormControlElement = () =>
 		#value: FormControlValue = null;
 		set value(newValue: FormControlValue) {
 			if (this.#value === newValue) return;
+			this.#internals.setFormValue(newValue);
 			this.#value = newValue;
 			if (this.#input !== undefined && this.#valueSource !== 'input') {
 				// @ts-expect-error // value accepts more than just strings
 				this.#input.value = newValue;
 			}
-			this.#internals.setFormValue(newValue);
 			this.#updateValidity();
 			this.#valueSource = 'property';
 		}
@@ -314,8 +315,6 @@ export const getFormControlElement = () =>
 			this.#internals.ariaPressed = 'false';
 		}).bind(this);
 
-		#internals = this.attachInternals();
-
 		peekInternals() {
 			return this.#internals;
 		}
@@ -400,6 +399,9 @@ export const getFormControlElement = () =>
 			this.#internals.ariaChecked = null;
 			this.#internals.ariaMultiLine = null;
 			this.#internals.ariaPlaceholder = null;
+			this.#internals.ariaValueMin = null;
+			this.#internals.ariaValueMax = null;
+			this.#internals.ariaValueNow = null;
 			this.removeEventListener('mousedown', this.#handleButtonPressed);
 			this.removeEventListener('mouseup', this.#handleButtonReleased);
 			this.removeEventListener('click', this.#handleClickSubmit);
