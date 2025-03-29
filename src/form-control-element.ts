@@ -408,8 +408,16 @@ export const getFormControlElement = () =>
 			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
 		}
 
-		get #input(): HTMLFormControlElement | undefined {
-			if (this.#formControl.control === 'button') return;
+		#inputSubscribers = new Set<(input: HTMLFormControlElement) => void>();
+		#subscribeToInput(callback: (input: HTMLFormControlElement) => void) {
+			if (this.#input !== undefined) callback(this.#input);
+			this.#inputSubscribers.add(callback);
+		}
+		#input: HTMLFormControlElement | undefined;
+		#inputObserver = new MutationObserver(this.#updateInput.bind(this));
+		#updateInput() {
+			const { control } = this.#formControl;
+			if (control === 'button') return;
 			const tagnameMap = {
 				text: 'input',
 				checkbox: 'input',
@@ -433,9 +441,14 @@ export const getFormControlElement = () =>
 				textarea: 'textarea',
 				select: 'select',
 			} as const;
-			const tagname = tagnameMap[this.#formControl.control];
-			const selector = tagname === 'input' ? `input[type="${this.#formControl.control}"]` : tagname;
-			return this.shadowRoot?.querySelector(selector) ?? undefined;
+			const tagname = tagnameMap[control];
+			const _selector = tagname === 'input' ? `input[type="${control}"]` : tagname;
+			const selector = _selector.endsWith('[type="text"]') ? `${_selector}, input:not([type])` : _selector;
+			const input = this.shadowRoot?.querySelector<HTMLFormControlElement>(selector) ?? undefined;
+			if (input !== undefined) {
+				this.#inputSubscribers.forEach((callback) => callback(input));
+			}
+			this.#input = input;
 		}
 
 		#convertForComparison(_value: number | FormControlValue): number | Date {
@@ -577,8 +590,15 @@ export const getFormControlElement = () =>
 
 		connectedCallback() {
 			this.#initInternals();
-			this.#input?.addEventListener('input', this.#syncValue);
-			this.#input?.addEventListener('change', this.#syncValue);
+			this.#updateInput();
+			this.#subscribeToInput((input) => {
+				input.addEventListener('input', this.#syncValue);
+				input.addEventListener('change', this.#syncValue);
+			});
+			this.#inputObserver.observe(this, {
+				childList: true,
+				subtree: true,
+			});
 		}
 
 		disconnectedCallback() {
