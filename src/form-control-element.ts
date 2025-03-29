@@ -286,14 +286,15 @@ export const getFormControlElement = () =>
 		}
 
 		#handleSubmit = ((event: Event) => {
-			if (this.#formControl.control !== 'button' || this.#formControl.type !== 'submit') return;
+			if (this.#formControl.control !== 'button' && this.#formControl.control !== 'image') return;
 			const form = this.#internals.form;
-			if (form === null) return;
+			const type = this.#formControl.type ?? (form === null ? 'button' : 'submit');
+			if (type !== 'submit' || this.disabled) return;
 
 			// preserve the ability to cancel events before submit
 			queueMicrotask(() => {
 				if (event.defaultPrevented) return;
-				form.requestSubmit();
+				form?.requestSubmit();
 			});
 		}).bind(this);
 
@@ -335,7 +336,7 @@ export const getFormControlElement = () =>
 					this.addEventListener('mousedown', this.#handleButtonPressed);
 					this.addEventListener('mouseup', this.#handleButtonReleased);
 					if (form === null) break;
-					this.addEventListener('click', this.#handleClickSubmit);
+					this.onclick = this.#handleClickSubmit;
 					form.addEventListener('keydown', this.#handleKeyboardSubmit);
 					break;
 				case 'select':
