@@ -285,16 +285,24 @@ export const getFormControlElement = () =>
 			this.#updateValidity();
 		}
 
-		#handleSubmit = (() => {
-			if (this.#formControl.control !== 'button') return;
+		#handleSubmit = ((event: Event) => {
+			if (this.#formControl.control !== 'button' || this.#formControl.type !== 'submit') return;
 			const form = this.#internals.form;
 			if (form === null) return;
-			const type = this.#formControl.type ?? 'submit';
-			if (type === 'submit') form.requestSubmit();
+
+			// preserve the ability to cancel events before submit
+			queueMicrotask(() => {
+				if (event.defaultPrevented) return;
+				form.requestSubmit();
+			});
+		}).bind(this);
+
+		#handleClickSubmit = ((event: MouseEvent) => {
+			this.#handleSubmit(event);
 		}).bind(this);
 
 		#handleKeyboardSubmit = ((event: KeyboardEvent) => {
-			if (event.key === 'Enter') this.#handleSubmit();
+			if (event.key === 'Enter') this.#handleSubmit(event);
 		}).bind(this);
 
 		#handleButtonPressed = (() => {
@@ -327,7 +335,7 @@ export const getFormControlElement = () =>
 					this.addEventListener('mousedown', this.#handleButtonPressed);
 					this.addEventListener('mouseup', this.#handleButtonReleased);
 					if (form === null) break;
-					this.addEventListener('click', this.#handleSubmit);
+					this.addEventListener('click', this.#handleClickSubmit);
 					form.addEventListener('keydown', this.#handleKeyboardSubmit);
 					break;
 				case 'select':
@@ -393,7 +401,7 @@ export const getFormControlElement = () =>
 			this.#internals.ariaPlaceholder = null;
 			this.removeEventListener('mousedown', this.#handleButtonPressed);
 			this.removeEventListener('mouseup', this.#handleButtonReleased);
-			this.removeEventListener('click', this.#handleSubmit);
+			this.removeEventListener('click', this.#handleClickSubmit);
 			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
 		}
 
