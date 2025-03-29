@@ -408,11 +408,6 @@ export const getFormControlElement = () =>
 			this.#internals.form?.removeEventListener('keydown', this.#handleKeyboardSubmit);
 		}
 
-		#inputSubscribers = new Set<(input: HTMLFormControlElement) => void>();
-		#subscribeToInput(callback: (input: HTMLFormControlElement) => void) {
-			if (this.#input !== undefined) callback(this.#input);
-			this.#inputSubscribers.add(callback);
-		}
 		#input: HTMLFormControlElement | undefined;
 		#inputObserver = new MutationObserver(this.#updateInput.bind(this));
 		#updateInput() {
@@ -445,11 +440,19 @@ export const getFormControlElement = () =>
 			const _selector = tagname === 'input' ? `input[type="${control}"]` : tagname;
 			const selector = _selector.endsWith('[type="text"]') ? `${_selector}, input:not([type])` : _selector;
 			const input = this.shadowRoot?.querySelector<HTMLFormControlElement>(selector) ?? undefined;
-			if (input !== undefined) {
-				this.#inputSubscribers.forEach((callback) => callback(input));
-			}
+			input?.addEventListener('input', this.#syncValue);
+			input?.addEventListener('change', this.#syncValue);
 			this.#input = input;
 		}
+		#syncValue = (() => {
+			const input = this.#input!;
+			this.#valueSource = 'input';
+			this.value = input.value;
+			if (input instanceof HTMLInputElement && (input.type === 'checkbox' || input.type === 'radio')) {
+				this.#checkedSource = 'input';
+				this.checked = input.checked;
+			}
+		}).bind(this);
 
 		#convertForComparison(_value: number | FormControlValue): number | Date {
 			const value = typeof _value === 'number' ? String(_value) : _value;
@@ -578,23 +581,9 @@ export const getFormControlElement = () =>
 			this.#initInternals();
 		}
 
-		#syncValue = (() => {
-			const input = this.#input!;
-			this.#valueSource = 'input';
-			this.value = input.value;
-			if (input instanceof HTMLInputElement && (input.type === 'checkbox' || input.type === 'radio')) {
-				this.#checkedSource = 'input';
-				this.checked = input.checked;
-			}
-		}).bind(this);
-
 		connectedCallback() {
 			this.#initInternals();
 			this.#updateInput();
-			this.#subscribeToInput((input) => {
-				input.addEventListener('input', this.#syncValue);
-				input.addEventListener('change', this.#syncValue);
-			});
 			this.#inputObserver.observe(this, {
 				childList: true,
 				subtree: true,
