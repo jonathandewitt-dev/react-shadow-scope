@@ -7,6 +7,7 @@ import {
 	RANGE_UNDERFLOW_MESSAGE,
 	STEP_MISMATCH_MESSAGE,
 	TYPE_MISMATCH_MESSAGE,
+	parseVariables,
 } from '../src/form-control-element';
 
 describe('Form Control Element', () => {
@@ -139,21 +140,26 @@ describe('Form Control Element', () => {
 			expectValidity(true, element);
 		});
 
+		it('parses values correctly', () => {
+			expect(parseVariables('hello {} and {}.', 1, 2)).toBe('hello 1 and 2.');
+			expect(parseVariables('hello {} and {}.', 'one', 'two')).toBe('hello one and two.');
+		});
+
 		it('updates validity for number inputs', async () => {
 			element.formControl = { control: 'number', min: '10', max: '20', step: '1' };
 			element.value = '9';
 			expect(element.validity.rangeUnderflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '10');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_UNDERFLOW_MESSAGE, 10));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '21';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '20');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, 20));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '15.5';
 			expect(element.validity.stepMismatch).toBe(true);
-			expect(element.validationMessage).toBe(STEP_MISMATCH_MESSAGE + '15 and 16');
+			expect(element.validationMessage).toBe(parseVariables(STEP_MISMATCH_MESSAGE, 15, 16));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '16';
@@ -164,12 +170,12 @@ describe('Form Control Element', () => {
 			element.formControl = { control: 'date', min: '2021-01-01', max: '2021-12-31' };
 			element.value = '2020-01-01';
 			expect(element.validity.rangeUnderflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01-01');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_UNDERFLOW_MESSAGE, '2021-01-01'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2022-01-01';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12-31');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, '2021-12-31'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2021-02-01';
@@ -180,7 +186,7 @@ describe('Form Control Element', () => {
 			element.formControl = { control: 'time', min: '00:00', max: '12:00' };
 			element.value = '23:00';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '12:00');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, '12:00'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '11:00';
@@ -191,12 +197,12 @@ describe('Form Control Element', () => {
 			element.formControl = { control: 'datetime-local', min: '2021-01-01T00:00', max: '2021-12-31T12:00' };
 			element.value = '2020-01-01T00:00';
 			expect(element.validity.rangeUnderflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01-01T00:00');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_UNDERFLOW_MESSAGE, '2021-01-01T00:00'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2022-01-01T00:00';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12-31T12:00');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, '2021-12-31T12:00'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2021-02-01T00:00';
@@ -207,12 +213,12 @@ describe('Form Control Element', () => {
 			element.formControl = { control: 'month', min: '2021-01', max: '2021-12' };
 			element.value = '2020-01';
 			expect(element.validity.rangeUnderflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-01');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_UNDERFLOW_MESSAGE, '2021-01'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2022-01';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-12');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, '2021-12'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2021-02';
@@ -223,12 +229,12 @@ describe('Form Control Element', () => {
 			element.formControl = { control: 'week', min: '2021-W01', max: '2021-W52' };
 			element.value = '2020-W01';
 			expect(element.validity.rangeUnderflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_UNDERFLOW_MESSAGE + '2021-W01');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_UNDERFLOW_MESSAGE, '2021-W01'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2022-W01';
 			expect(element.validity.rangeOverflow).toBe(true);
-			expect(element.validationMessage).toBe(RANGE_OVERFLOW_MESSAGE + '2021-W52');
+			expect(element.validationMessage).toBe(parseVariables(RANGE_OVERFLOW_MESSAGE, '2021-W52'));
 			expectValidity(false, element);
 			await Promise.resolve();
 			element.value = '2021-W02';
@@ -456,7 +462,7 @@ describe('Form Control Element', () => {
 		it('handles click events', () => {
 			const mockSubmit = vi.fn().mockImplementation(onSubmit);
 			form.addEventListener('submit', mockSubmit);
-			element.click();
+			element.dispatchEvent(new MouseEvent('click'));
 			expect(mockSubmit).toHaveBeenCalled();
 			form.removeEventListener('submit', mockSubmit);
 		});
@@ -464,7 +470,6 @@ describe('Form Control Element', () => {
 		it('handles enter key for form submission', () => {
 			const mockSubmit = vi.fn().mockImplementation(onSubmit);
 			form.addEventListener('submit', mockSubmit);
-
 			form.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 			expect(mockSubmit).toHaveBeenCalled();
 			form.removeEventListener('submit', mockSubmit);

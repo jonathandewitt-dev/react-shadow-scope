@@ -137,10 +137,15 @@ export const DEFAULT_FORM_CONTROL: FormControlType = {
 } as const;
 
 export const MISSING_MESSAGE = 'Please fill out this field.';
-export const RANGE_UNDERFLOW_MESSAGE = 'Value must be greater than or equal to ';
-export const RANGE_OVERFLOW_MESSAGE = 'Value must be less than or equal to ';
-export const STEP_MISMATCH_MESSAGE = 'Please enter a valid value. The two nearest valid values are ';
+export const RANGE_UNDERFLOW_MESSAGE = 'Value must be greater than or equal to {}.';
+export const RANGE_OVERFLOW_MESSAGE = 'Value must be less than or equal to {}.';
+export const STEP_MISMATCH_MESSAGE = 'Please enter a valid value. The two nearest valid values are {} and {}.';
 export const TYPE_MISMATCH_MESSAGE = 'Please enter a valid value.';
+
+export const parseVariables = (str: string, ...values: unknown[]) => {
+	let i = 0;
+	return str.replace(/\{\}/g, () => String(values[i++]));
+};
 
 export const getFormControlElement = () =>
 	class FormControlElement extends HTMLElement {
@@ -517,9 +522,9 @@ export const getFormControlElement = () =>
 			let message = '';
 			if (valueMissing) message = MISSING_MESSAGE;
 			if (isRangeOrNumberFormControl(this.#formControl) && rangeUnderflow)
-				message = RANGE_UNDERFLOW_MESSAGE + this.#formControl.min;
+				message = parseVariables(RANGE_UNDERFLOW_MESSAGE, this.#formControl.min);
 			if (isRangeOrNumberFormControl(this.#formControl) && rangeOverflow)
-				message = RANGE_OVERFLOW_MESSAGE + this.#formControl.max;
+				message = parseVariables(RANGE_OVERFLOW_MESSAGE, this.#formControl.max);
 			if (isRangeOrNumberFormControl(this.#formControl) && stepMismatch) {
 				const min = Number(this.#formControl.min);
 				const max = Number(this.#formControl.max);
@@ -532,7 +537,7 @@ export const getFormControlElement = () =>
 						if (i < value) lowNearest = i;
 						if (i > value && highNearest === max) highNearest = i;
 					}
-					message = STEP_MISMATCH_MESSAGE + lowNearest + ' and ' + highNearest;
+					message = parseVariables(STEP_MISMATCH_MESSAGE, lowNearest, highNearest);
 				}
 			}
 			if (badInput) message = TYPE_MISMATCH_MESSAGE;
