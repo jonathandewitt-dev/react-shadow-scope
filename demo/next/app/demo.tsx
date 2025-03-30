@@ -132,8 +132,15 @@ export default function Demo() {
 					Scope can now also work with forms! It's a little tricky, but it solves the problem of shadow DOM
 					encapsulating HTML form controls.
 				</p>
-				<FormControl control="text" value={value} name="my-input" required tag="my-input">
-					<input onChange={(event) => setValue(event.currentTarget.value)} />
+				<FormControl
+					control="text"
+					tag="my-input"
+					name="my-input"
+					required
+					value={value}
+					onChange={(event) => setValue((event.currentTarget as HTMLInputElement).value)}
+				>
+					<input />
 				</FormControl>
 				<FormControl
 					control="text"

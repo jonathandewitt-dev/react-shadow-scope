@@ -213,7 +213,15 @@ export const getFormControlElement = () =>
 		#value: FormControlValue = null;
 		set value(newValue: FormControlValue) {
 			if (this.#value === newValue) return;
+			const prevDisabled = this.disabled;
+			this.disabled = false;
 			this.#internals.setFormValue(newValue);
+			this.disabled = prevDisabled;
+			if (prevDisabled) {
+				console.warn(
+					`FormControlElement: You are setting the value of a disabled form control. This may not be what you want. Disabled controls should not be editable.`,
+				);
+			}
 			this.#value = newValue;
 			if (this.#input !== undefined && this.#valueSource !== 'input') {
 				// @ts-expect-error // value accepts more than just strings
@@ -272,6 +280,7 @@ export const getFormControlElement = () =>
 
 		set required(newValue: boolean) {
 			this.#internals.ariaRequired = String(newValue);
+			if (this.#input !== undefined) this.#input.required = newValue;
 			this.#updateValidity();
 		}
 		get required() {
@@ -280,12 +289,17 @@ export const getFormControlElement = () =>
 
 		set disabled(newValue: boolean) {
 			this.#internals.ariaDisabled = String(newValue);
+			if (this.#input !== undefined) this.#input.disabled = newValue;
 		}
 		get disabled() {
 			return this.#internals.ariaDisabled === 'true';
 		}
 
 		set readOnly(newValue: boolean) {
+			if (this.#input !== undefined) {
+				if (newValue) this.#input.setAttribute('readonly', '');
+				else this.#input.removeAttribute('readonly');
+			}
 			this.#internals.ariaReadOnly = String(newValue);
 		}
 		get readOnly() {
@@ -293,34 +307,88 @@ export const getFormControlElement = () =>
 		}
 
 		set placeholder(newValue: string | null) {
+			if (this.#input !== undefined) {
+				if (newValue !== null) this.#input.setAttribute('placeholder', newValue);
+				else this.#input.removeAttribute('placeholder');
+			}
 			this.#internals.ariaPlaceholder = newValue;
 		}
 		get placeholder() {
 			return this.#internals.ariaPlaceholder;
 		}
 
+		set min(newValue: string | number | null) {
+			if (this.#input !== undefined) {
+				if (newValue !== null) this.#input.setAttribute('min', String(newValue));
+				else this.#input.removeAttribute('min');
+			}
+			this.#internals.ariaValueMin = String(newValue);
+			this.#updateValidity();
+		}
 		get min() {
 			return this.#internals.ariaValueMin;
 		}
-		set min(newValue: string | null) {
-			this.#internals.ariaValueMin = newValue;
+
+		set max(newValue: string | number | null) {
+			if (this.#input !== undefined) {
+				if (newValue !== null) this.#input.setAttribute('max', String(newValue));
+				else this.#input.removeAttribute('max');
+			}
+			this.#internals.ariaValueMax = String(newValue);
 			this.#updateValidity();
 		}
-
 		get max() {
 			return this.#internals.ariaValueMax;
 		}
-		set max(newValue: string | null) {
-			this.#internals.ariaValueMax = newValue;
+
+		set step(newValue: string | number | null) {
+			if (this.#input !== undefined) {
+				if (newValue !== null) this.#input.setAttribute('step', String(newValue));
+				else this.#input.removeAttribute('step');
+			}
+			this.#internals.ariaValueNow = String(newValue);
 			this.#updateValidity();
 		}
-
 		get step() {
 			return this.#internals.ariaValueNow;
 		}
-		set step(newValue: string | null) {
-			this.#internals.ariaValueNow = newValue;
-			this.#updateValidity();
+
+		#files: FileList | null = null;
+		set files(newValue: FileList | null) {
+			this.#files = newValue;
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				this.#input.files = newValue;
+			}
+		}
+		get files() {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				this.#files = this.#input.files;
+			}
+			return this.#files;
+		}
+
+		#accept: string | null = null;
+		set accept(newValue: string | null) {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				if (newValue !== null) this.#input.setAttribute('accept', newValue);
+				else this.#input.removeAttribute('accept');
+			}
+			this.#accept = newValue;
+		}
+		get accept() {
+			return this.#accept;
+		}
+
+		#multiple = false;
+		set multiple(newValue: boolean) {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				if (newValue) this.#input.setAttribute('multiple', '');
+				else this.#input.removeAttribute('multiple');
+			}
+			this.#multiple = newValue;
+		}
+		get multiple() {
+			return this.#multiple;
 		}
 
 		#handleSubmit = ((event: Event) => {
@@ -361,9 +429,24 @@ export const getFormControlElement = () =>
 			const { form } = this.#internals;
 			this.#initialValue = this.#formControl.value ?? null;
 			this.name = this.#formControl.name;
-			this.#internals.ariaDisabled = String(this.#formControl.disabled ?? false);
-			this.#internals.ariaRequired = String(this.#formControl.required ?? false);
-			this.#internals.ariaReadOnly = String(this.#formControl.readonly ?? false);
+			this.disabled = this.#formControl.disabled ?? false;
+			this.required = this.#formControl.required ?? false;
+			this.readOnly = this.#formControl.readonly ?? false;
+			if (isPlaceholderFormControl(this.#formControl)) {
+				this.placeholder = this.#formControl.placeholder ?? null;
+			}
+			if (isRangeOrNumberFormControl(this.#formControl)) {
+				this.min = this.#formControl.min ?? null;
+				this.max = this.#formControl.max ?? null;
+				this.step = this.#formControl.step ?? null;
+			}
+			if (this.#formControl.control === 'file') {
+				this.files = this.#formControl.files ?? null;
+				this.accept = this.#formControl.accept ?? null;
+			}
+			if (this.#formControl.control === 'select' || this.#formControl.control === 'file') {
+				this.multiple = this.#formControl.multiple ?? false;
+			}
 			this.#updateValidity();
 			switch (this.#formControl?.control) {
 				case 'image':
@@ -424,10 +507,17 @@ export const getFormControlElement = () =>
 		}
 
 		#resetInternals() {
+			this.disabled = false;
+			this.required = false;
+			this.readOnly = false;
+			this.placeholder = null;
+			this.min = null;
+			this.max = null;
+			this.step = null;
+			this.files = null;
+			this.accept = null;
+			this.multiple = false;
 			this.#internals.role = null;
-			this.#internals.ariaDisabled = null;
-			this.#internals.ariaRequired = null;
-			this.#internals.ariaReadOnly = null;
 			this.#internals.ariaPressed = null;
 			this.#internals.ariaExpanded = null;
 			this.#internals.ariaHasPopup = null;
@@ -435,7 +525,6 @@ export const getFormControlElement = () =>
 			this.#internals.ariaMultiSelectable = null;
 			this.#internals.ariaChecked = null;
 			this.#internals.ariaMultiLine = null;
-			this.#internals.ariaPlaceholder = null;
 			this.#internals.ariaValueMin = null;
 			this.#internals.ariaValueMax = null;
 			this.#internals.ariaValueNow = null;
@@ -480,6 +569,8 @@ export const getFormControlElement = () =>
 			input?.addEventListener('input', this.#syncValue);
 			input?.addEventListener('change', this.#syncValue);
 			this.#input = input;
+			this.#resetInternals();
+			this.#initInternals();
 		}
 		#syncValue = (() => {
 			const input = this.#input!;
@@ -657,10 +748,10 @@ export const getFormControlElement = () =>
 				this.checked = bool;
 			}
 			if (name === 'name') this.#name = newValue ?? undefined;
-			if (name === 'disabled') this.#internals.ariaDisabled = String(bool);
-			if (name === 'required') this.#internals.ariaRequired = String(bool);
-			if (name === 'readonly') this.#internals.ariaReadOnly = String(bool);
-			if (name === 'placeholder') this.#internals.ariaPlaceholder = newValue;
+			if (name === 'disabled') this.disabled = bool;
+			if (name === 'required') this.required = bool;
+			if (name === 'readonly') this.readOnly = bool;
+			if (name === 'placeholder') this.placeholder = newValue;
 			if (name === 'role') this.role = newValue;
 			if (name === 'min') this.min = newValue;
 			if (name === 'max') this.max = newValue;
