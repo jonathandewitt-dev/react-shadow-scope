@@ -26,7 +26,7 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 	const { children, control, value, name, disabled, required, readonly, ...rest } = props;
 
 	// @ts-expect-error // These props may be incompatible with some controls, but we still want to destructure them
-	const { checked, defaultChecked, placeholder, min, max, step, ...scopeProps } = rest;
+	const { checked, defaultChecked, placeholder, min, max, step, files, multiple, accept, ...scopeProps } = rest;
 	const Tag = scopeProps.tag ?? 'react-shadow-scope';
 	const formControl: FormControlType = { ...DEFAULT_FORM_CONTROL };
 
@@ -46,6 +46,10 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 	if (min !== undefined && isRangeOrNumber) formControl.min = min;
 	if (max !== undefined && isRangeOrNumber) formControl.max = max;
 	if (step !== undefined && isRangeOrNumber) formControl.step = step;
+	if (files !== undefined && formControl.control === 'file') formControl.files = files;
+	const supportsMultiple = formControl.control === 'file' || formControl.control === 'select';
+	if (multiple !== undefined && supportsMultiple) formControl.multiple = multiple;
+	if (accept !== undefined && formControl.control === 'file') formControl.accept = accept;
 
 	const [currentValue, setCurrentValue] = React.useState<FormControlValue>(formControl.value ?? null);
 	const formControlValue = formControl.value ?? null;

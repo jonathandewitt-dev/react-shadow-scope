@@ -49,7 +49,37 @@ type SimpleFormControl = SharedFormControlProps & {
 	/**
 	 * The input type or tag name of the form control element.
 	 */
-	control: 'hidden' | 'select' | 'textarea' | 'file' | 'color';
+	control: 'hidden' | 'textarea' | 'color';
+};
+
+type SelectFormControl = SharedFormControlProps & {
+	/**
+	 * The input type or tag name of the form control element.
+	 */
+	control: 'select';
+	/**
+	 * When true, allows selecting multiple options.
+	 */
+	multiple?: boolean;
+};
+
+type FileFormControl = SharedFormControlProps & {
+	/**
+	 * The input type or tag name of the form control element.
+	 */
+	control: 'file';
+	/**
+	 * A comma-separated list of file types that the form control accepts.
+	 */
+	accept?: string;
+	/**
+	 * When true, allows selecting multiple files.
+	 */
+	multiple?: boolean;
+	/**
+	 * The files of the form control element.
+	 */
+	files?: FileList;
 };
 
 const RANGE_CONTROLS = ['range', 'time', 'date', 'datetime-local', 'month', 'week'] as const;
@@ -124,6 +154,8 @@ export type FormControlType =
 	| ButtonFormControl
 	| RangeFormControl
 	| NumberFormControl
+	| SelectFormControl
+	| FileFormControl
 	| SimpleFormControl;
 
 export type HTMLFormControlElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
