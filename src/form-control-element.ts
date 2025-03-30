@@ -322,7 +322,7 @@ export const getFormControlElement = () =>
 				if (newValue !== null) this.#input.setAttribute('min', String(newValue));
 				else this.#input.removeAttribute('min');
 			}
-			this.#internals.ariaValueMin = String(newValue);
+			this.#internals.ariaValueMin = newValue === null ? null : String(newValue);
 			this.#updateValidity();
 		}
 		get min() {
@@ -334,7 +334,7 @@ export const getFormControlElement = () =>
 				if (newValue !== null) this.#input.setAttribute('max', String(newValue));
 				else this.#input.removeAttribute('max');
 			}
-			this.#internals.ariaValueMax = String(newValue);
+			this.#internals.ariaValueMax = newValue === null ? null : String(newValue);
 			this.#updateValidity();
 		}
 		get max() {
@@ -346,7 +346,7 @@ export const getFormControlElement = () =>
 				if (newValue !== null) this.#input.setAttribute('step', String(newValue));
 				else this.#input.removeAttribute('step');
 			}
-			this.#internals.ariaValueNow = String(newValue);
+			this.#internals.ariaValueNow = newValue === null ? null : String(newValue);
 			this.#updateValidity();
 		}
 		get step() {
@@ -716,10 +716,19 @@ export const getFormControlElement = () =>
 				childList: true,
 				subtree: true,
 			});
+			if (this.shadowRoot !== null) {
+				this.#inputObserver.observe(this.shadowRoot, {
+					childList: true,
+					subtree: true,
+				});
+			}
 		}
 
 		disconnectedCallback() {
 			this.#resetInternals();
+			this.#inputObserver.disconnect();
+			this.#input?.removeEventListener('input', this.#syncValue);
+			this.#input?.removeEventListener('change', this.#syncValue);
 		}
 
 		static observedAttributes = [

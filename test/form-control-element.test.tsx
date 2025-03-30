@@ -286,10 +286,11 @@ describe('Form Control Element', () => {
 			expect(element.checked).toBe(true);
 		});
 
-		it('handles inner checkbox', () => {
+		it('handles inner checkbox', async () => {
 			const innerCheckbox = document.createElement('input');
 			innerCheckbox.type = 'checkbox';
 			element.shadowRoot?.appendChild(innerCheckbox);
+			await Promise.resolve();
 			element.checked = true;
 			expect(innerCheckbox.checked).toBe(true);
 		});
@@ -412,10 +413,11 @@ describe('Form Control Element', () => {
 			form.remove();
 		});
 
-		it('handles inner radio', () => {
+		it('handles inner radio', async () => {
 			const innerRadio = document.createElement('input');
 			innerRadio.type = 'radio';
 			element.shadowRoot?.appendChild(innerRadio);
+			await Promise.resolve();
 			element.checked = true;
 			expect(innerRadio.checked).toBe(true);
 		});
@@ -459,18 +461,20 @@ describe('Form Control Element', () => {
 			expect(element.peekInternals().ariaPressed).toBe('false');
 		});
 
-		it('handles click events', () => {
+		it('handles click events', async () => {
 			const mockSubmit = vi.fn().mockImplementation(onSubmit);
 			form.addEventListener('submit', mockSubmit);
-			element.dispatchEvent(new MouseEvent('click'));
+			element.click();
+			await Promise.resolve(); // wait for requestSubmit after microtask
 			expect(mockSubmit).toHaveBeenCalled();
 			form.removeEventListener('submit', mockSubmit);
 		});
 
-		it('handles enter key for form submission', () => {
+		it('handles enter key for form submission', async () => {
 			const mockSubmit = vi.fn().mockImplementation(onSubmit);
 			form.addEventListener('submit', mockSubmit);
 			form.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+			await Promise.resolve(); // wait for requestSubmit after microtask
 			expect(mockSubmit).toHaveBeenCalled();
 			form.removeEventListener('submit', mockSubmit);
 		});
