@@ -83,9 +83,9 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 			// @ts-expect-error // name is valid for form controls
 			name={formControl.name}
 			value={currentValue}
-			disabled={formControl.disabled}
-			required={isButton ? undefined : formControl.required}
-			readonly={isButton ? undefined : formControl.readonly}
+			disabled={formControl.disabled ? '' : undefined}
+			required={isButton ? undefined : formControl.required ? '' : undefined}
+			readonly={isButton ? undefined : formControl.readonly ? '' : undefined}
 			placeholder={isPlaceholderFormControl(formControl) ? formControl.placeholder : undefined}
 			checked={checkable ? (currentChecked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
