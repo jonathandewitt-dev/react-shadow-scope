@@ -75,7 +75,7 @@ export type ScopeProps = React.PropsWithChildren<
 >;
 
 type Cache = {
-	cv: `${string}-${string}-${string}-${string}-${string}`;
+	cv: string;
 	base: StyleSheet;
 	normalize: StyleSheet;
 	stylesheets: Map<string, CSSStyleSheet>;

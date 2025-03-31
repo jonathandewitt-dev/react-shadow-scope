@@ -121,15 +121,47 @@ All normalized styles are contained inside a `@layer` called `normalize`, which 
 
 ### Constructed Style Sheets
 
-For best performance, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop.
+Runtime overhead is a common criticism of CSS-in-JS approaches, but `react-shadow-scope` solves these performance concerns using constructed style sheets.
 
-`react-shadow-scope` exports a hook (`useCSS`) that returns a tagged template function that will take care of this for you. It will detect support for the feature and fallback to a string if necessary. When rendering on the server, the styles will render in a `<style>` tag.
+Using the `css` tagged template literal, you can create a new `CSSStyleSheet` object and pass it to the `stylesheet` prop. This allows you to share a single style sheet across different components and between each instance, rather than continuously duplicating the styles at runtime.
 
 ```jsx
-import { useCSS, Scope } from 'react-shadow-scope';
+import { css } from 'react-shadow-scope';
+
+const stylesheet = css`
+  h1 {
+    color: red;
+  }
+`;
 
 const MyComponent = () => {
-  const css = useCSS();
+  return (
+    <Scope stylesheet={stylesheet}>
+      <h1>title here</h1>
+    </Scope>
+  );
+};
+
+const MyOtherComponent = () => {
+  return (
+    <Scope stylesheet={stylesheet}>
+      <h1>another title here</h1>
+    </Scope>
+  );
+};
+```
+
+> NOTE: On the server, `css` returns a string which is rendered in a `<style>` tag to support SSR styles while avoiding "flash-of-unstyled-content" (FOUC) issues. This string will be converted to a `CSSStyleSheet` object after hydration, at which point it will share only a single style sheet between all components.
+
+For better HMR support, `react-shadow-scope` exports a hook (`useCSS`) that returns a unique tagged template function. Using the hook will allow you to make updates to the stylesheet on the fly.
+
+You should create a `Symbol` outside the component function, then pass it to the `useCSS` hook. This will uniquely identify a single reference so the resulting `css` function will always update the same `CSSStyleSheet`. While it still works without a unique key, it will create duplicate style sheets, which will become a performance concern.
+
+```jsx
+const key = Symbol();
+
+const MyComponent = () => {
+  const css = useCSS(key);
   return (
     <Scope
       stylesheet={css`
@@ -144,20 +176,9 @@ const MyComponent = () => {
 };
 ```
 
-To ensure that only one stylesheet gets constructed even when you use a component multiple times, you can create a `Symbol` outside the component function, then pass it to the `useCSS` hook. This will uniquely identify a single reference for each instance of the component.
-
-```jsx
-const key = Symbol();
-
-const MyComponent = () => {
-  const css = useCSS(key);
-  ...
-}
-```
-
 > **Note**
 >
-> When using a key, you may not use the resulting `css` function multiple times, because the same reference is shared between each function call. This means the last result will override all previous results. If you need multiple stylesheets, consider calling `useCSS` multiple times with different keys.
+> When using a key, you should _NOT_ use the resulting `css` function multiple times, because the same reference is shared between each function call. This means the last result will override all previous results. If you need multiple stylesheets, consider calling `useCSS` multiple times with different keys.
 >
 > ```jsx
 > const key1 = Symbol();
@@ -170,23 +191,39 @@ const MyComponent = () => {
 > }
 > ```
 
-You can also import the `css` function directly, but the `useCSS` hook works well with HMR without sacrificing performance.
-
-```jsx
-import { css } from 'react-shadow-scope';
-
-const stylesheet = css`
-  h1 {
-    color: red;
-  }
-`;
-```
-
 To use multiple stylesheets, you can also use the `stylesheets` prop (plural) and pass an array.
 
 ```jsx
 <Scope stylesheets={[theme, styles]}>
 ```
+
+---
+
+### Styling Server Components
+
+To support server components, you must directly pass a plain string to the `stylesheet` or `adoptedStyleSheets` props. This is because Constructed Style Sheets are only supported on the client, and any attempt to use `css` or `useCSS` on the server will result in an error.
+
+```jsx
+const MyComponent = () => {
+  return (
+    <Scope
+      stylesheet={
+        /* css */ `
+        h1 {
+          color: red;
+        }
+      `
+      }
+    >
+      <h1>title here</h1>
+    </Scope>
+  );
+};
+```
+
+While both the usual `css` function and a directly-provided string will render a `<style>` tag on the server and convert to a `CSSStyleSheet` on the client, there is a key difference to watch out for:
+
+A plain string will create a duplicate `CSSStyleSheet` for each instance, so keep in mind the trade-offs when deciding between a server and client component.
 
 ---
 

@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { adoptedStylesSupported, type StyleSheet } from './css-utils';
+import { adoptedStylesSupported, css, type StyleSheet } from './css-utils';
 
 // caching the result out here avoids parsing a fragment for each component instance
 // ATTN: These are only exported for testing purposes, do not export them in the main module
@@ -167,7 +167,15 @@ const ClientTemplate = React.forwardRef<HTMLTemplateElement, TemplateProps>((pro
 	React.useEffect(() => {
 		if (adoptedStyleSheets === undefined || shadowRoot === null) return;
 		if (adoptedStylesSupported()) {
-			shadowRoot.adoptedStyleSheets = adoptedStyleSheets as CSSStyleSheet[];
+			const _adoptedStyleSheets = adoptedStyleSheets.map((stylesheet) => {
+				if (typeof stylesheet === 'string') {
+					return css`
+						${stylesheet}
+					`;
+				}
+				return stylesheet;
+			});
+			shadowRoot.adoptedStyleSheets = _adoptedStyleSheets as CSSStyleSheet[];
 		} else {
 			const style = document.createElement('style');
 			style.textContent = (adoptedStyleSheets as string[]).join('');

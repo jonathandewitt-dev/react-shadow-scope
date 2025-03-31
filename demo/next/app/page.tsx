@@ -1,5 +1,11 @@
 import Demo from './demo';
+import { ServerComponent } from './serverComponent';
 
 export default function Home() {
-	return <Demo />;
+	return (
+		<>
+			<ServerComponent />
+			<Demo />
+		</>
+	);
 }
