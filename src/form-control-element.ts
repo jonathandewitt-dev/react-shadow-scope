@@ -219,7 +219,7 @@ export const getFormControlElement = () =>
 			this.disabled = prevDisabled;
 			if (prevDisabled) {
 				console.warn(
-					`FormControlElement: You are setting the value of a disabled form control. This may not be what you want. Disabled controls should not be editable.`,
+					'FormControlElement: You are setting the value of a disabled form control. This may not be what you want. Disabled controls should not be editable.',
 				);
 			}
 			this.#value = newValue;
@@ -449,6 +449,13 @@ export const getFormControlElement = () =>
 			}
 			this.#updateValidity();
 			switch (this.#formControl?.control) {
+				case 'file':
+					this.#internals.role = 'button';
+					this.#internals.ariaHasPopup = 'dialog';
+					this.#internals.ariaMultiSelectable = String(this.#formControl.multiple ?? false);
+					this.addEventListener('mousedown', this.#handleButtonPressed);
+					this.addEventListener('mouseup', this.#handleButtonReleased);
+					break;
 				case 'image':
 				case 'button':
 					this.#internals.role = 'button';

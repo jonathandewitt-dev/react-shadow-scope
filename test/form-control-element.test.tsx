@@ -251,6 +251,34 @@ describe('Form Control Element', () => {
 			element.value = '11';
 			expectValidity(true, element);
 		});
+
+		it('handles disabled state', () => {
+			const consoleSpy = vi.spyOn(console, 'warn');
+			element.disabled = true;
+			expect(element.disabled).toBe(true);
+			element.value = 'test';
+			expect(element.value).toBe('test');
+			expect(consoleSpy).toHaveBeenCalled();
+		});
+
+		it('syncs value from input to custom element', async () => {
+			const innerInput = document.createElement('input');
+			innerInput.type = 'text';
+			element.shadowRoot?.appendChild(innerInput);
+			await Promise.resolve();
+			element.value = 'test';
+			expect(innerInput.value).toBe('test');
+			element.formControl = { control: 'checkbox' };
+			innerInput.type = 'checkbox';
+			innerInput.checked = true;
+			innerInput.dispatchEvent(new Event('change'));
+			expect(element.checked).toBe(true);
+			element.formControl = { control: 'radio' };
+			innerInput.type = 'radio';
+			innerInput.checked = false;
+			innerInput.dispatchEvent(new Event('change'));
+			expect(element.checked).toBe(false);
+		});
 	});
 
 	describe('Select behavior', () => {
@@ -279,6 +307,7 @@ describe('Form Control Element', () => {
 			element.shadowRoot?.appendChild(innerSelect);
 			await Promise.resolve();
 			element.multiple = true;
+			expect(element.multiple).toBe(true);
 			expect(innerSelect.multiple).toBe(true);
 			element.value = 'test';
 			expect(innerSelect.value).toBe('test');
@@ -612,6 +641,58 @@ describe('Form Control Element', () => {
 			await Promise.resolve();
 			element.value = '2021-W01';
 			expect(innerWeek.value).toBe('2021-W01');
+		});
+	});
+
+	describe('File input behavior', () => {
+		beforeEach(() => {
+			element.formControl = { control: 'file' };
+		});
+		it('updates internals', () => {
+			const internals = element.peekInternals();
+			expect(internals.role).toBe('button');
+			expect(internals.ariaHasPopup).toBe('dialog');
+		});
+		it('handles inner file input', async () => {
+			const innerFile = document.createElement('input');
+			innerFile.type = 'file';
+			element.shadowRoot?.appendChild(innerFile);
+			await Promise.resolve();
+			const file = new File(['test'], 'test.txt', { type: 'text/plain' });
+			const dataTransfer = new DataTransfer();
+			dataTransfer.items.add(file);
+			innerFile.files = dataTransfer.files;
+			element.files = dataTransfer.files;
+			expect(innerFile.files.length).toBe(1);
+			expect(innerFile.files[0].name).toBe('test.txt');
+			expect(element.files.length).toBe(1);
+			expect(element.files[0].name).toBe('test.txt');
+		});
+		it('handles accept attribute', async () => {
+			element.formControl = { control: 'file' };
+			const innerFile = document.createElement('input');
+			innerFile.type = 'file';
+			element.shadowRoot?.appendChild(innerFile);
+			await Promise.resolve();
+			element.accept = 'image/*';
+			expect(element.accept).toBe('image/*');
+			expect(innerFile.accept).toBe('image/*');
+			element.formControl = { control: 'file', accept: '.txt' };
+			expect(innerFile.accept).toBe('.txt');
+			element.formControl = { control: 'file', accept: '' };
+			expect(innerFile.accept).toBe('');
+		});
+		it('handles multiple attribute', async () => {
+			element.formControl = { control: 'file' };
+			const innerFile = document.createElement('input');
+			innerFile.type = 'file';
+			element.shadowRoot?.appendChild(innerFile);
+			await Promise.resolve();
+			element.multiple = true;
+			expect(element.multiple).toBe(true);
+			expect(innerFile.multiple).toBe(true);
+			element.formControl = { control: 'file', multiple: false };
+			expect(innerFile.multiple).toBe(false);
 		});
 	});
 
