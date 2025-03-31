@@ -61,25 +61,6 @@ const MyComponent = () => (
 );
 ```
 
-> **Warning**
->
-> There is a [known bug in React](https://github.com/facebook/react/issues/26071) that triggers false hydration mismatch errors when using Next.js. If you're using Next.js, you may set declarative shadow DOM to `emulated` or `off` by passing the `config` prop.
->
-> You can use `<ShadowScopeConfigProvider>` to apply the config options to all child instances.
->
-> ```tsx
-> <ShadowScopeConfigProvider config={{ dsd: 'emulated' }}>
-> ```
->
-> ...OR you can pass it directly to each `<Scope>`, `<CustomElement>`, or `<Tailwind>`. Each instance will override the provider's config.
->
-> ```tsx
-> <Scope config={{ dsd: 'emulated' }}>
-> ```
->
-> Setting `dsd` to `emulated` will initially render (hidden) HTML by parsing slots in the light DOM, then enhance with the shadow DOM after hydration completes.
-> Setting `dsd` to `off` will disable server-side rendering altogether.
-
 #### Custom Tag Names
 
 By default, `<Scope>` renders a `<react-shadow-scope>` element, but doesn't define it in the custom element registry. The custom tag name just avoids cases where `<div>` or `<span>` would break HTML validation.
