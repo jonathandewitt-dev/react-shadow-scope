@@ -9,10 +9,10 @@
 	"dependencies": {
 		"@declarative-shadow-dom/react": "^0.1.1",
 		"autoprefixer": "^10.4.20",
-		"next": "^14.2.15",
+		"next": "^15.2.4",
 		"postcss": "^8.4.47",
-		"react": "^18.3.1",
-		"react-dom": "^18.3.1",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
 		"react-shadow-scope": "file:../..",
 		"tailwindcss": "^3.4.13"
 	},
