@@ -1,21 +1,22 @@
 {
-  "name": "react-shadow-scope-demo-next",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "start": "next dev --port 5050",
-    "tailwind": "tailwindcss -i ./app/tailwind.css -o ./public/tailwind.css"
-  },
-  "dependencies": {
-    "autoprefixer": "^10.4.20",
-    "next": "^14.2.15",
-    "postcss": "^8.4.47",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-shadow-scope": "^1.0.12",
-    "tailwindcss": "^3.4.13"
-  },
-  "devDependencies": {
-    "@types/node": "20.2.5"
-  }
+	"name": "react-shadow-scope-demo-next",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"start": "next dev --port 5050",
+		"tailwind": "tailwindcss -i ./app/tailwind.css -o ./public/tailwind.css"
+	},
+	"dependencies": {
+		"@declarative-shadow-dom/react": "^0.1.1",
+		"autoprefixer": "^10.4.20",
+		"next": "^14.2.15",
+		"postcss": "^8.4.47",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-shadow-scope": "file:../..",
+		"tailwindcss": "^3.4.13"
+	},
+	"devDependencies": {
+		"@types/node": "20.2.5"
+	}
 }

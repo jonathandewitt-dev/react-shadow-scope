@@ -1,112 +1,111 @@
 'use client';
 import React from 'react';
-import { StyleSheet, css, isCSSStyleSheet, normalizedScope } from './css-utils';
-import { CustomElement, Template } from './template';
-import { ShadowScopeConfig } from './context';
-import { defineAria, FormControl } from './aria-utils';
+import { type StyleSheet, css, getCSSText, isCSSStyleSheet, normalizedScope } from './css-utils';
+import { Template } from './template';
 
 export type CustomIntrinsicElement = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-  class?: string,
-  for?: string,
+	class?: string;
+	for?: string;
 };
 
 // Declare the custom tag name as JSX
 declare global {
-  namespace ReactShadowScope {
-    interface CustomElements {
-      'react-shadow-scope': CustomIntrinsicElement;
-    }
-  }
-  namespace JSX {
-    interface IntrinsicElements extends ReactShadowScope.CustomElements {}
-  }
+	namespace ReactShadowScope {
+		interface CustomElements {
+			'react-shadow-scope': CustomIntrinsicElement;
+		}
+	}
+}
+declare module 'react' {
+	namespace JSX {
+		interface IntrinsicElements extends ReactShadowScope.CustomElements {}
+	}
 }
 
-export type ScopeProps = React.PropsWithChildren<Partial<{
-  /**
-   * The tag name of the custom element rendered by `<Scope>`
-   *
-   * @defaultValue `'react-shadow-scope'`
-   */
-  tag: keyof ReactShadowScope.CustomElements;
-  /**
-   * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
-   */
-  stylesheet: StyleSheet;
-  /**
-   * Multiple stylesheets to encapsulate. Each should be created by the exported `css` tagged template function.
-   *
-   * @defaultValue `[]`
-   */
-  stylesheets: StyleSheet[];
-  /**
-   * The HREF of the stylesheet to encapsulate.
-   */
-  href: string;
-  /**
-   * Multiple HREFs of stylesheets to encapsulate.
-   *
-   * @defaultValue `[]`
-   */
-  hrefs: string[];
-  /**
-   * Styles that will apply only when an external stylesheet is in the process of being fetched.
-   * 
-   * @defaultValue `:host { visibility: hidden; }`
-   */
-  pendingStyles: StyleSheet;
-  /**
-   * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
-   */
-  slottedContent: React.ReactNode;
-  /**
-   * Some styles are included to make default behavior consistent across different browsers. Opt-out by setting this to false.
-   *
-   * @defaultValue `true`
-   */
-  normalize: boolean;
-  /**
-   * Configure this instance of `<Scope>`. (Overrides `ShadowScopeConfigProvider`)
-   */
-  config?: ShadowScopeConfig;
-  /**
-   * To enable form controls to participate in forms outside the shadow DOM, set this prop to the appropriate value.
-   */
-  formControl?: FormControl;
-  /**
-   * For internal use only. This is not a stable feature and may be removed at any time.
-   */
-  __transform: (cssString: string) => string,
-}> & React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>>;
+export type ScopeProps = React.PropsWithChildren<
+	Partial<{
+		/**
+		 * The tag name of the custom element rendered by `<Scope>`
+		 *
+		 * @defaultValue `'react-shadow-scope'`
+		 */
+		tag: keyof ReactShadowScope.CustomElements;
+		/**
+		 * The stylesheet to encapsulate. Should be created by the exported `css` tagged template function.
+		 */
+		stylesheet: StyleSheet;
+		/**
+		 * Multiple stylesheets to encapsulate. Each should be created by the exported `css` tagged template function.
+		 *
+		 * @defaultValue `[]`
+		 */
+		stylesheets: StyleSheet[];
+		/**
+		 * The HREF of the stylesheet to encapsulate.
+		 */
+		href: string;
+		/**
+		 * Multiple HREFs of stylesheets to encapsulate.
+		 *
+		 * @defaultValue `[]`
+		 */
+		hrefs: string[];
+		/**
+		 * Event handler for when all remote stylesheets have been loaded. This also dispatches a `load` event on the host element.
+		 */
+		onLoad: (event: CustomEvent<{ hrefs: string[] }>) => void;
+		/**
+		 * Styles that will apply only when an external stylesheet is in the process of being fetched.
+		 *
+		 * @defaultValue `:host { visibility: hidden; }`
+		 */
+		pendingStyles: StyleSheet;
+		/**
+		 * Light DOM content reflected by the given template; this can be useful for excluding children from the scope.
+		 */
+		slottedContent: React.ReactNode;
+		/**
+		 * Some styles are included to make default behavior consistent across different browsers. Opt-out by setting this to false.
+		 *
+		 * @defaultValue `true`
+		 */
+		normalize: boolean;
+	}> &
+		React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>
+>;
 
 type Cache = {
-  base: StyleSheet,
-  normalize: StyleSheet,
-  stylesheets: Map<string, StyleSheet>,
+	cv: `${string}-${string}-${string}-${string}-${string}`;
+	base: StyleSheet;
+	normalize: StyleSheet;
+	stylesheets: Map<string, CSSStyleSheet>;
 };
 
-type CSSResponse = {
-  currentHref: string,
-  text: string,
+// This object is kept in memory to prevent fetching and/or constructing the stylesheet(s) more than once.
+// ATTN: This is exported for testing purposes only. Do not export this in the main module.
+export const stylesheetCache: Cache = {
+	cv: crypto.randomUUID(),
+	base: css`
+		@layer {
+			/*
+			Accessibility issues with display: contents; only affect semantic tags.
+			<react-shadow-scope> lacks semantics (by default.)
+			The @layer makes this trivial to override if necessary.
+			*/
+			:host {
+				display: contents;
+			}
+		}
+	`,
+	normalize: css`
+		${normalizedScope}
+	`,
+	stylesheets: new Map(),
 };
 
-// This object is kept in memory to prevent fetching and/or
-// constructing the stylesheet(s) more than once.
-const cache: Cache = {
-  base: css`
-    @layer {
-      /*
-      Accessibility issues with display: contents; only affect semantic tags.
-      <react-shadow-scope> lacks semantics (by default.)
-      The @layer makes this trivial to override if necessary.
-      */
-      :host {
-        display: contents;
-      }
-    }
-  `,
-  normalize: css`${normalizedScope}`,
-  stylesheets: new Map(),
+const getLocation = () => {
+	if (typeof location === 'undefined') return '';
+	return location.origin;
 };
 
 /**
@@ -120,149 +119,107 @@ const cache: Cache = {
  * </Scope>
  * ```
  */
-export const Scope = React.forwardRef<HTMLElement, ScopeProps>(
-  (props, forwardedRef) => {
-    const {
-      children,
-      tag = 'react-shadow-scope',
-      stylesheet,
-      stylesheets = [],
-      href,
-      hrefs = [],
-      pendingStyles = css`:host { visibility: hidden; }`,
-      slottedContent,
-      normalize = true,
-      config,
-      formControl,
-      __transform = s => s,
-      className,
-      ...forwardedProps
-    } = props;
+export const Scope = React.forwardRef<HTMLElement, ScopeProps>((props, forwardedRef) => {
+	const {
+		children,
+		tag: Tag = 'react-shadow-scope',
+		stylesheet,
+		stylesheets = [],
+		href,
+		hrefs = [],
+		pendingStyles = css`
+			:host {
+				visibility: hidden;
+			}
+		`,
+		slottedContent,
+		normalize = true,
+		className,
+		...forwardedProps
+	} = props;
 
-    const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
-    const allHrefs = React.useMemo(
-      () => typeof href !== 'undefined' ? [href, ...hrefs] : hrefs,
-      [href, hrefs],
-    );
-    const pending = typeof window !== 'undefined' && allHrefs.length > 0 && !hrefsLoaded;
+	const [hrefsLoaded, setHrefsLoaded] = React.useState<boolean>(false);
+	const allHrefs = React.useMemo(() => (typeof href !== 'undefined' ? [href, ...hrefs] : hrefs), [href, hrefs.join()]);
+	const pendingHrefs = React.useMemo(
+		() => allHrefs.filter((href) => !stylesheetCache.stylesheets.has(href)),
+		[allHrefs.join(), stylesheetCache.cv],
+	);
+	const pending = pendingHrefs.length > 0 && !hrefsLoaded;
+	const [hrefStates, setHrefStates] = React.useState(
+		pendingHrefs.map((href) => ({ href: href.replace(getLocation(), ''), loaded: false })),
+	);
 
-    // Combine all stylesheets into a single string to use for change detection.
-    // This may not be the most performant solution, but it feels necessary...
-    const localStyleText = [...stylesheets, stylesheet].map((s) => isCSSStyleSheet(s) ? Array.from(s.cssRules).map((r) => r.cssText).join('') : s).join('');
+	const tagRef = React.useRef<HTMLElement | null>(null);
 
-    const localStyleSheets = React.useMemo(
-      () => {
-        const _localStylesheets = [
-          cache.normalize,
-          cache.base,
-          ...stylesheets,
-        ];
-        if (pending) _localStylesheets.push(pendingStyles);
-        if (typeof stylesheet !== 'undefined') _localStylesheets.push(stylesheet);
-        return _localStylesheets;
-      },
-      [pending, localStyleText],
-    );
-    const [allStyleSheets, setAllStyleSheets] = React.useState<StyleSheet[]>(localStyleSheets);
+	React.useEffect(() => {
+		// Synchronize internal tag ref with the forwarded ref
+		if (typeof forwardedRef === 'function') {
+			forwardedRef(tagRef.current);
+		} else if (forwardedRef && typeof forwardedRef === 'object') {
+			(forwardedRef as React.RefObject<unknown>).current = tagRef.current;
+		}
+	}, []);
 
-    // load all stylesheets
-    React.useEffect(() => {
-      const _allStyleSheets: StyleSheet[] = [...localStyleSheets];
+	const onHrefLoad: React.EventHandler<React.SyntheticEvent<HTMLLinkElement>> = React.useCallback(
+		(event) => {
+			const link = event.target as HTMLLinkElement;
+			const href = link.href.replace(location.origin, '');
+			if (link.sheet !== null) {
+				const constructedSheet = new CSSStyleSheet();
+				constructedSheet.replaceSync(getCSSText(link.sheet));
+				stylesheetCache.stylesheets.set(href, constructedSheet);
+				stylesheetCache.cv = crypto.randomUUID();
+			}
+			const _hrefStates = hrefStates.map((state) => ({
+				href: state.href,
+				loaded: state.href === href || state.loaded,
+			}));
+			setHrefStates(_hrefStates);
+			if (_hrefStates.every((state) => state.loaded)) {
+				setHrefsLoaded(true);
+				const event = new CustomEvent('load', { detail: { hrefs: allHrefs } });
+				tagRef.current?.dispatchEvent(event);
+				props.onLoad?.(event);
+			}
+		},
+		[allHrefs.join()],
+	);
 
-      // Request or load from cache
-      const abortControllers: AbortController[] = [];
-      const requests: Promise<CSSResponse>[] = [];
-      for (const currentHref of allHrefs) {
-        if (cache.stylesheets.has(currentHref)) {
-          const currentCssStyleSheet = cache.stylesheets.get(currentHref);
-          if (typeof currentCssStyleSheet !== 'undefined') {
-            _allStyleSheets.push(currentCssStyleSheet);
-            continue; // skip the request if it was cached
-          }
-        }
+	// Combine all stylesheets into a single string to use for change detection.
+	// This may not be the most performant solution, but it may be necessary here...
+	const styleText = [...stylesheets, stylesheet].map((s) => (isCSSStyleSheet(s) ? getCSSText(s) : s)).join('');
 
-        // fetch the stylesheet as text
-        const abortController = new AbortController();
-        abortControllers.push(abortController);
-        requests.push(
-          fetch(currentHref, { signal: abortController.signal })
-            .then(async (response: Response) =>
-              ({ currentHref, text: __transform(await response.text()) })
-            ),
-        );
-      }
+	const cssStyleSheets = React.useMemo(() => {
+		const _cssStyleSheets: StyleSheet[] = [];
+		if (normalize) _cssStyleSheets.push(stylesheetCache.normalize);
+		_cssStyleSheets.push(stylesheetCache.base, ...stylesheets);
+		if (pending) _cssStyleSheets.push(pendingStyles);
+		for (const href of allHrefs) {
+			const cachedSheet = stylesheetCache.stylesheets.get(href);
+			if (cachedSheet !== undefined) _cssStyleSheets.push(cachedSheet);
+		}
+		if (typeof stylesheet !== 'undefined') _cssStyleSheets.push(stylesheet);
+		return _cssStyleSheets;
+	}, [pending, styleText, stylesheetCache.cv]);
 
-      // concurrently run all requests
-      if (requests.length > 0) {
-        Promise.all(requests).then((cssResponses) => {
-          for (const { currentHref, text } of cssResponses) {
-            const currentCssStyleSheet = css`${text}`;
-            _allStyleSheets.push(currentCssStyleSheet);
-            cache.stylesheets.set(currentHref, currentCssStyleSheet);
-          }
-          setAllStyleSheets(_allStyleSheets);
-          setHrefsLoaded(true);
-        }).catch((error) => {
-          if (error === "Aborted due to cleanup." || error.name === "AbortError") {
-            return;
-          }
-          console.error(error);
-        });
-      } else {
+	const convertedProps = className ? { class: className } : {};
 
-        // if there are no requests to wait for, set immediately
-        setAllStyleSheets(_allStyleSheets);
-        setHrefsLoaded(true);
-      }
-
-      // cleanup any unfinished requests
-      return () => {
-        for (const abortController of abortControllers) {
-          abortController.abort('Aborted due to cleanup.');
-        }
-      };
-    }, [pending, localStyleText]);
-
-    React.useEffect(() => {
-      if (formControl !== undefined) defineAria(tag, formControl);
-    }, [tag, formControl]);
-
-    const convertedProps = className ? { class: className } : {};
-
-    return (
-      <CustomElement
-        // @ts-ignore // TODO: figure out this absurd TS error - casting, narrowing, fallbacks... nothing works here.
-        ref={forwardedRef}
-        tag={tag}
-        config={config}
-        name={formControl?.name}
-        value={formControl?.value}
-        disabled={formControl?.disabled}
-        required={formControl?.is === 'button' ? undefined : formControl?.required}
-        readonly={formControl?.is === 'button' ? undefined : formControl?.readonly}
-        placeholder={formControl?.is === 'button' ? undefined : formControl?.placeholder}
-        {...convertedProps}
-        {...forwardedProps}
-      >
-        <Template shadowrootmode="open" delegatesFocus={true} adoptedStyleSheets={allStyleSheets}>
-          {!hrefsLoaded
-
-            /**
-             * Use preload link to avoid FOUC (when rendered on the server)
-             * @see https://webcomponents.guide/learn/components/styling/ - scroll to `Using <link rel="stylesheet">`
-             */
-            ? allHrefs.map((href) => (
-                <React.Fragment key={href}>
-                  <link rel="preload" href={href} as="style" />
-                  <link rel="stylesheet" href={href} />
-                </React.Fragment>
-              ))
-            : <></>
-          }
-          {children}
-        </Template>
-        {slottedContent}
-      </CustomElement>
-    );
-  },
-);
+	return (
+		<Tag ref={tagRef} {...convertedProps} {...forwardedProps}>
+			<Template
+				shadowRootMode="open"
+				shadowRootDelegatesFocus={true}
+				shadowRootSerializable={true}
+				adoptedStyleSheets={cssStyleSheets}
+			>
+				{hrefStates.map(({ href }) => (
+					<React.Fragment key={href}>
+						<link rel="stylesheet" href={href} onLoad={onHrefLoad} />
+					</React.Fragment>
+				))}
+				{children}
+			</Template>
+			{slottedContent}
+		</Tag>
+	);
+});
