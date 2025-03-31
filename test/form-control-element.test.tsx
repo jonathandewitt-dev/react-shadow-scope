@@ -274,7 +274,7 @@ describe('Form Control Element', () => {
 			expect(consoleSpy).toHaveBeenCalled();
 		});
 
-		it('syncs value from input to custom element', async () => {
+		it('syncs value from input to host element', async () => {
 			const innerInput = document.createElement('input');
 			innerInput.type = 'text';
 			element.shadowRoot?.appendChild(innerInput);
@@ -291,6 +291,21 @@ describe('Form Control Element', () => {
 			innerInput.checked = false;
 			innerInput.dispatchEvent(new Event('change'));
 			expect(element.checked).toBe(false);
+		});
+
+		it('syncs props from host element to nested input', async () => {
+			const innerInput = document.createElement('input');
+			innerInput.type = 'text';
+			element.shadowRoot?.appendChild(innerInput);
+			await Promise.resolve();
+			element.value = 'test';
+			expect(innerInput.value).toBe('test');
+			element.pattern = '[a-z]{10}';
+			expect(innerInput.pattern).toBe('[a-z]{10}');
+			element.minLength = 5;
+			expect(innerInput.minLength).toBe(5);
+			element.maxLength = 10;
+			expect(innerInput.maxLength).toBe(10);
 		});
 	});
 
