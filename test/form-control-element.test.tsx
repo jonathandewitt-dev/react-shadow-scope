@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
 	getFormControlElement,
-	isPlaceholderFormControl,
+	isTextFormControl,
 	MISSING_MESSAGE,
 	RANGE_OVERFLOW_MESSAGE,
 	RANGE_UNDERFLOW_MESSAGE,
 	STEP_MISMATCH_MESSAGE,
 	TYPE_MISMATCH_MESSAGE,
 	parseVariables,
+	TOO_SHORT_MESSAGE,
+	PATTERN_MISMATCH_MESSAGE,
+	TOO_LONG_MESSAGE,
 } from '../src/form-control-element';
 
 describe('Form Control Element', () => {
@@ -27,16 +30,16 @@ describe('Form Control Element', () => {
 	});
 
 	describe('Extra utilities', () => {
-		it('checks if form control is a placeholder', () => {
-			const result1 = isPlaceholderFormControl({ control: 'text' });
-			const result2 = isPlaceholderFormControl({ control: 'number' });
-			const result3 = isPlaceholderFormControl({ control: 'password' });
-			const result4 = isPlaceholderFormControl({ control: 'email' });
-			const result5 = isPlaceholderFormControl({ control: 'search' });
-			const result6 = isPlaceholderFormControl({ control: 'tel' });
-			const result7 = isPlaceholderFormControl({ control: 'url' });
-			const result8 = isPlaceholderFormControl({ control: 'textarea' });
-			const result9 = isPlaceholderFormControl(undefined);
+		it('checks if form control is a text control', () => {
+			const result1 = isTextFormControl({ control: 'text' });
+			const result2 = isTextFormControl({ control: 'number' });
+			const result3 = isTextFormControl({ control: 'password' });
+			const result4 = isTextFormControl({ control: 'email' });
+			const result5 = isTextFormControl({ control: 'search' });
+			const result6 = isTextFormControl({ control: 'tel' });
+			const result7 = isTextFormControl({ control: 'url' });
+			const result8 = isTextFormControl({ control: 'textarea' });
+			const result9 = isTextFormControl(undefined);
 			expect(result1).toBe(true);
 			expect(result2).toBe(true);
 			expect(result3).toBe(true);
@@ -138,6 +141,16 @@ describe('Form Control Element', () => {
 			element.value = 'test';
 			expect(element.validity.valueMissing).toBe(false);
 			expectValidity(true, element);
+			element.pattern = '[a-z]{10}';
+			expect(element.validity.patternMismatch).toBe(true);
+			expect(element.validationMessage).toBe(parseVariables(PATTERN_MISMATCH_MESSAGE));
+			element.minLength = 5;
+			expect(element.validity.tooShort).toBe(true);
+			expect(element.validationMessage).toBe(parseVariables(TOO_SHORT_MESSAGE, 5));
+			element.maxLength = 10;
+			element.value = 'testtesttest';
+			expect(element.validity.tooLong).toBe(true);
+			expect(element.validationMessage).toBe(parseVariables(TOO_LONG_MESSAGE, 10));
 		});
 
 		it('parses values correctly', () => {

@@ -23,11 +23,23 @@ type SharedFormControlProps = {
 	readonly?: boolean;
 };
 
-type PlaceholderFormControlProps = {
+type TextFormControlProps = {
 	/**
 	 * The placeholder of the form control element.
 	 */
 	placeholder?: string;
+	/**
+	 * The pattern of the form control element.
+	 */
+	pattern?: string;
+	/**
+	 * The minimum length of the form control value.
+	 */
+	minLength?: number;
+	/**
+	 * The maximum length of the form control value.
+	 */
+	maxLength?: number;
 };
 
 type RangeFormControlProps = {
@@ -99,7 +111,7 @@ type RangeFormControl = SharedFormControlProps &
 
 type NumberFormControl = SharedFormControlProps &
 	RangeFormControlProps &
-	PlaceholderFormControlProps & {
+	TextFormControlProps & {
 		/**
 		 * The input type or tag name of the form control element.
 		 */
@@ -107,16 +119,14 @@ type NumberFormControl = SharedFormControlProps &
 	};
 
 type TextFormControl = SharedFormControlProps &
-	PlaceholderFormControlProps & {
+	TextFormControlProps & {
 		/**
 		 * The input type or tag name of the form control element.
 		 */
 		control: 'text' | 'password' | 'email' | 'tel' | 'url' | 'search';
 	};
 
-export const isPlaceholderFormControl = (
-	formControl?: FormControlType,
-): formControl is TextFormControl | NumberFormControl =>
+export const isTextFormControl = (formControl?: FormControlType): formControl is TextFormControl | NumberFormControl =>
 	formControl !== undefined &&
 	['text', 'password', 'email', 'tel', 'url', 'search', 'number'].includes(formControl.control);
 
@@ -173,6 +183,9 @@ export const RANGE_UNDERFLOW_MESSAGE = 'Value must be greater than or equal to {
 export const RANGE_OVERFLOW_MESSAGE = 'Value must be less than or equal to {}.';
 export const STEP_MISMATCH_MESSAGE = 'Please enter a valid value. The two nearest valid values are {} and {}.';
 export const TYPE_MISMATCH_MESSAGE = 'Please enter a valid value.';
+export const PATTERN_MISMATCH_MESSAGE = 'Please match the requested format.';
+export const TOO_LONG_MESSAGE = 'Please shorten this text to no more than {} characters.';
+export const TOO_SHORT_MESSAGE = 'Please lengthen this text to {} characters or more.';
 
 export const parseVariables = (str: string, ...values: unknown[]) => {
 	let i = 0;
@@ -370,8 +383,7 @@ export const getFormControlElement = () =>
 		#accept: string | null = null;
 		set accept(newValue: string | null) {
 			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
-				if (newValue !== null) this.#input.setAttribute('accept', newValue);
-				else this.#input.removeAttribute('accept');
+				if (newValue !== null) this.#input.accept = newValue;
 			}
 			this.#accept = newValue;
 		}
@@ -382,13 +394,48 @@ export const getFormControlElement = () =>
 		set multiple(newValue: boolean) {
 			const allowsMultiple = this.#formControl.control === 'file' || this.#formControl.control === 'select';
 			if (this.#input !== undefined && allowsMultiple) {
-				if (newValue) this.#input.setAttribute('multiple', '');
-				else this.#input.removeAttribute('multiple');
+				(this.#input as HTMLInputElement).multiple = newValue;
 			}
 			this.#internals.ariaMultiSelectable = String(newValue);
 		}
 		get multiple() {
 			return this.#internals.ariaMultiSelectable === 'true';
+		}
+
+		#pattern: string | null = null;
+		set pattern(newValue: string | null) {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				if (newValue !== null) this.#input.pattern = newValue;
+			}
+			this.#pattern = newValue;
+			this.#updateValidity();
+		}
+		get pattern() {
+			return this.#pattern;
+		}
+
+		#minLength: number | null = null;
+		set minLength(newValue: number | null) {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				if (newValue !== null) this.#input.minLength = newValue;
+			}
+			this.#minLength = newValue;
+			this.#updateValidity();
+		}
+		get minLength() {
+			return this.#minLength;
+		}
+
+		#maxLength: number | null = null;
+		set maxLength(newValue: number | null) {
+			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+				if (newValue !== null) this.#input.maxLength = newValue;
+			}
+			this.#maxLength = newValue;
+			this.#updateValidity();
+		}
+		get maxLength() {
+			return this.#maxLength;
 		}
 
 		#handleSubmit = ((event: Event) => {
@@ -432,7 +479,7 @@ export const getFormControlElement = () =>
 			this.disabled = this.#formControl.disabled ?? false;
 			this.required = this.#formControl.required ?? false;
 			this.readOnly = this.#formControl.readonly ?? false;
-			if (isPlaceholderFormControl(this.#formControl)) {
+			if (isTextFormControl(this.#formControl)) {
 				this.placeholder = this.#formControl.placeholder ?? null;
 			}
 			if (isRangeOrNumberFormControl(this.#formControl)) {
@@ -671,13 +718,32 @@ export const getFormControlElement = () =>
 				}
 			}
 			if (badInput) message = TYPE_MISMATCH_MESSAGE;
+			const pattern = isTextFormControl(this.#formControl) && this.pattern !== null ? new RegExp(this.pattern) : null;
+			const patternMismatch = pattern !== null && !pattern.test(String(this.#value));
+			if (patternMismatch) message = PATTERN_MISMATCH_MESSAGE;
+			const tooLong =
+				isTextFormControl(this.#formControl) && this.maxLength !== null && this.maxLength < String(this.#value).length;
+			if (tooLong) message = parseVariables(TOO_LONG_MESSAGE, this.maxLength);
+			const tooShort =
+				isTextFormControl(this.#formControl) && this.minLength !== null && this.minLength > String(this.#value).length;
+			if (tooShort) message = parseVariables(TOO_SHORT_MESSAGE, this.minLength);
 
 			// set the validity state
+			const validity = {
+				valueMissing,
+				rangeOverflow,
+				rangeUnderflow,
+				stepMismatch,
+				badInput,
+				patternMismatch,
+				tooLong,
+				tooShort,
+			};
 			if (input === undefined) {
-				this.#internals.setValidity({ valueMissing, rangeOverflow, rangeUnderflow, stepMismatch, badInput }, message);
+				this.#internals.setValidity(validity, message);
 			} else {
 				this.#internals.setValidity(
-					{ ...input.validity, valueMissing, rangeOverflow, rangeUnderflow, stepMismatch, badInput },
+					{ ...input.validity, ...validity },
 					message !== '' ? message : input.validationMessage,
 					input,
 				);

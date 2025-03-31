@@ -5,7 +5,7 @@ import {
 	type FormControlType,
 	type FormControlValue,
 	getFormControlElement,
-	isPlaceholderFormControl,
+	isTextFormControl,
 	isRangeOrNumberFormControl,
 } from './form-control-element';
 
@@ -32,7 +32,7 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 
 	if (control !== undefined) formControl.control = control;
 	const checkable = formControl.control === 'checkbox' || formControl.control === 'radio';
-	const isPlaceholder = isPlaceholderFormControl(formControl);
+	const isPlaceholder = isTextFormControl(formControl);
 	const isRangeOrNumber = isRangeOrNumberFormControl(formControl);
 	const isButton = formControl.control === 'button' || formControl.control === 'image';
 	if (value !== undefined) formControl.value = value;
@@ -90,7 +90,7 @@ export const FormControl = React.forwardRef<HTMLElement, FormControlProps>((prop
 			disabled={formControl.disabled ? '' : undefined}
 			required={isButton ? undefined : formControl.required ? '' : undefined}
 			readonly={isButton ? undefined : formControl.readonly ? '' : undefined}
-			placeholder={isPlaceholderFormControl(formControl) ? formControl.placeholder : undefined}
+			placeholder={isTextFormControl(formControl) ? formControl.placeholder : undefined}
 			checked={checkable ? (currentChecked ? '' : undefined) : undefined}
 			defaultChecked={checkable ? formControl.defaultChecked : undefined}
 			{...scopeProps}
