@@ -1,5 +1,5 @@
 import Demo from './demo';
-import { ServerComponent } from './server';
+import { ServerComponent } from './serverComponent';
 
 export default function Home() {
 	return (
