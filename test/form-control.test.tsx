@@ -9,7 +9,7 @@ describe('Form control', () => {
 		cleanup();
 	});
 
-	it('handles initial checked state', async () => {
+	it('handles checked state', async () => {
 		await renderShadow(
 			<FormControl tag="x-input" data-testid="control" control="checkbox" checked={true} name="test-checkbox">
 				<input type="checkbox" />
@@ -38,7 +38,7 @@ describe('Form control', () => {
 		expect(customElements.get('x-input')).toBe(XInputClass);
 	});
 
-	it('handles checkbox state changes', async () => {
+	it('handles default checked state and state changes', async () => {
 		cleanup();
 
 		let resolve: () => void;
@@ -47,13 +47,15 @@ describe('Form control', () => {
 		});
 
 		const TestCheckbox = () => {
-			const [checked, setChecked] = React.useState(false);
+			const [checked, setChecked] = React.useState(true);
+			React.useEffect(() => setChecked(false), []);
 			React.useEffect(() => {
-				setChecked(true);
-				const control: HTMLInputElement = screen.getByTestId('control');
-				resolve();
-				expect(control.checked).toBe(true);
-			}, []);
+				queueMicrotask(() => {
+					const control: HTMLInputElement = screen.getByTestId('control');
+					expect(control.checked).toBe(false);
+					resolve();
+				});
+			}, [checked]);
 			return (
 				<FormControl
 					tag="x-input"
@@ -72,8 +74,7 @@ describe('Form control', () => {
 		await renderShadow(<TestCheckbox />);
 
 		const control: HTMLInputElement = screen.getByTestId('control');
-		expect(control.hasAttribute('checked')).toBe(false);
-		expect(control.checked).toBe(false);
+		expect(control.checked).toBe(true);
 		await promise;
 	});
 
