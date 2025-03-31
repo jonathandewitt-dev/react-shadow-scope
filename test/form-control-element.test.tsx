@@ -265,6 +265,24 @@ describe('Form Control Element', () => {
 			expect(internals.ariaAutoComplete).toBe('list');
 			expect(internals.ariaMultiSelectable).toBe('false');
 		});
+		it('handles multiple select', () => {
+			element.formControl = { control: 'select', multiple: true };
+			const internals = element.peekInternals();
+			expect(internals.ariaMultiSelectable).toBe('true');
+		});
+		it('syncs with native select', async () => {
+			element.formControl = { control: 'select' };
+			const innerSelect = document.createElement('select');
+			const innerOption = document.createElement('option');
+			innerOption.value = 'test';
+			innerSelect.appendChild(innerOption);
+			element.shadowRoot?.appendChild(innerSelect);
+			await Promise.resolve();
+			element.multiple = true;
+			expect(innerSelect.multiple).toBe(true);
+			element.value = 'test';
+			expect(innerSelect.value).toBe('test');
+		});
 	});
 
 	describe('Checkbox behavior', () => {
@@ -433,6 +451,14 @@ describe('Form Control Element', () => {
 			expect(internals.role).toBe('textbox');
 			expect(internals.ariaMultiLine).toBe('true');
 		});
+
+		it('handles inner textarea', async () => {
+			const innerTextarea = document.createElement('textarea');
+			element.shadowRoot?.appendChild(innerTextarea);
+			await Promise.resolve();
+			element.value = 'test';
+			expect(innerTextarea.value).toBe('test');
+		});
 	});
 
 	describe('Button behavior', () => {
@@ -489,6 +515,15 @@ describe('Form Control Element', () => {
 			const internals = element.peekInternals();
 			expect(internals.role).toBe('none');
 		});
+
+		it('syncs with native hidden input', async () => {
+			const innerInput = document.createElement('input');
+			innerInput.type = 'hidden';
+			element.shadowRoot?.appendChild(innerInput);
+			await Promise.resolve();
+			element.value = 'test';
+			expect(innerInput.value).toBe('test');
+		});
 	});
 
 	describe('All range inputs behavior', () => {
@@ -508,6 +543,75 @@ describe('Form Control Element', () => {
 			expect(internals.role).toBe('spinbutton');
 			element.formControl = { control: 'range' };
 			expect(internals.role).toBe('slider');
+		});
+		it('handles inner range input', async () => {
+			element.formControl = { control: 'range' };
+			const innerRange = document.createElement('input');
+			innerRange.type = 'range';
+			element.shadowRoot?.appendChild(innerRange);
+			await Promise.resolve();
+			element.value = '10';
+			expect(innerRange.value).toBe('10');
+		});
+		it('handles inner number input', async () => {
+			element.formControl = { control: 'number' };
+			const innerNumber = document.createElement('input');
+			innerNumber.type = 'number';
+			element.shadowRoot?.appendChild(innerNumber);
+			await Promise.resolve();
+			element.value = '10';
+			element.min = 5;
+			element.max = 15;
+			element.step = 2;
+			expect(innerNumber.value).toBe('10');
+			expect(innerNumber.min).toBe('5');
+			expect(innerNumber.max).toBe('15');
+			expect(innerNumber.step).toBe('2');
+		});
+		it('handles inner date input', async () => {
+			element.formControl = { control: 'date' };
+			const innerDate = document.createElement('input');
+			innerDate.type = 'date';
+			element.shadowRoot?.appendChild(innerDate);
+			await Promise.resolve();
+			element.value = '2021-01-01';
+			expect(innerDate.value).toBe('2021-01-01');
+		});
+		it('handles inner time input', async () => {
+			element.formControl = { control: 'time' };
+			const innerTime = document.createElement('input');
+			innerTime.type = 'time';
+			element.shadowRoot?.appendChild(innerTime);
+			await Promise.resolve();
+			element.value = '12:00';
+			expect(innerTime.value).toBe('12:00');
+		});
+		it('handles inner datetime-local input', async () => {
+			element.formControl = { control: 'datetime-local' };
+			const innerDateTime = document.createElement('input');
+			innerDateTime.type = 'datetime-local';
+			element.shadowRoot?.appendChild(innerDateTime);
+			await Promise.resolve();
+			element.value = '2021-01-01T12:00';
+			expect(innerDateTime.value).toBe('2021-01-01T12:00');
+		});
+		it('handles inner month input', async () => {
+			element.formControl = { control: 'month' };
+			const innerMonth = document.createElement('input');
+			innerMonth.type = 'month';
+			element.shadowRoot?.appendChild(innerMonth);
+			await Promise.resolve();
+			element.value = '2021-01';
+			expect(innerMonth.value).toBe('2021-01');
+		});
+		it('handles inner week input', async () => {
+			element.formControl = { control: 'week' };
+			const innerWeek = document.createElement('input');
+			innerWeek.type = 'week';
+			element.shadowRoot?.appendChild(innerWeek);
+			await Promise.resolve();
+			element.value = '2021-W01';
+			expect(innerWeek.value).toBe('2021-W01');
 		});
 	});
 

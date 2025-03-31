@@ -379,16 +379,16 @@ export const getFormControlElement = () =>
 			return this.#accept;
 		}
 
-		#multiple = false;
 		set multiple(newValue: boolean) {
-			if (this.#input !== undefined && this.#input instanceof HTMLInputElement) {
+			const allowsMultiple = this.#formControl.control === 'file' || this.#formControl.control === 'select';
+			if (this.#input !== undefined && allowsMultiple) {
 				if (newValue) this.#input.setAttribute('multiple', '');
 				else this.#input.removeAttribute('multiple');
 			}
-			this.#multiple = newValue;
+			this.#internals.ariaMultiSelectable = String(newValue);
 		}
 		get multiple() {
-			return this.#multiple;
+			return this.#internals.ariaMultiSelectable === 'true';
 		}
 
 		#handleSubmit = ((event: Event) => {
@@ -463,7 +463,7 @@ export const getFormControlElement = () =>
 					this.#internals.ariaExpanded = 'false';
 					this.#internals.ariaHasPopup = 'listbox';
 					this.#internals.ariaAutoComplete = 'list';
-					this.#internals.ariaMultiSelectable = 'false';
+					this.#internals.ariaMultiSelectable = String(this.#formControl.multiple ?? false);
 					break;
 				case 'checkbox':
 					this.#internals.role = 'checkbox';
