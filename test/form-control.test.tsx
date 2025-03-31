@@ -22,10 +22,14 @@ describe('Form control', () => {
 
 	it('defines a custom element', async () => {
 		await renderShadow(
-			<FormControl tag="x-input" control="text">
+			<FormControl data-testid="control" tag="x-input" control="text">
 				<input />
 			</FormControl>,
 		);
+
+		const control = screen.getByTestId('control');
+		expect(control).toBeTruthy();
+		expect(control.tagName).toBe('X-INPUT');
 
 		const XInputClass = customElements.get('x-input');
 		expect(XInputClass).toBeTruthy();
@@ -36,6 +40,66 @@ describe('Form control', () => {
 			</FormControl>,
 		);
 		expect(customElements.get('x-input')).toBe(XInputClass);
+	});
+
+	it('handles form control initialization', async () => {
+		await renderShadow(
+			<FormControl
+				tag="x-input"
+				data-testid="control"
+				control="text"
+				name="test-input"
+				value="test-value"
+				placeholder="test-placeholder"
+				disabled={true}
+				required={true}
+				readonly={true}
+			>
+				<input type="text" />
+			</FormControl>,
+		);
+		const control: HTMLInputElement = screen.getByTestId('control');
+		expect(control.name).toBe('test-input');
+		expect(control.value).toBe('test-value');
+		expect(control.placeholder).toBe('test-placeholder');
+		expect(control.disabled).toBe(true);
+		expect(control.required).toBe(true);
+		expect(control.readOnly).toBe(true);
+
+		const file = new File(['test'], 'test.txt', { type: 'text/plain' });
+		const dataTransfer = new DataTransfer();
+		dataTransfer.items.add(file);
+
+		cleanup();
+		await renderShadow(
+			<FormControl
+				tag="x-input"
+				data-testid="control"
+				control="file"
+				files={dataTransfer.files}
+				accept="image/*"
+				multiple={true}
+			>
+				<input type="file" />
+			</FormControl>,
+		);
+		const fileControl: HTMLInputElement = screen.getByTestId('control');
+		expect(fileControl.files).toBeTruthy();
+		expect(fileControl.files?.length).toBe(1);
+		expect(fileControl.files?.[0].name).toBe('test.txt');
+		expect(fileControl.accept).toBe('image/*');
+		expect(fileControl.multiple).toBe(true);
+
+		cleanup();
+		await renderShadow(
+			<FormControl tag="x-input" data-testid="control" control="number" min={0} max={100} step={1}>
+				<input type="number" />
+			</FormControl>,
+		);
+		const numberControl: HTMLInputElement = screen.getByTestId('control');
+		expect(numberControl.min).toBe('0');
+		expect(numberControl.max).toBe('100');
+		expect(numberControl.step).toBe('1');
 	});
 
 	it('handles default checked state and state changes', async () => {
