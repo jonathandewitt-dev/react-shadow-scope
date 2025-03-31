@@ -249,6 +249,7 @@ import { FormControl } from 'react-shadow-scope';
 // A basic text input
 <FormControl
   tag="x-input"
+  stylesheets={[theme, css``]}
   control="text"
   value={value}
   onInput={handleInput}
@@ -259,6 +260,7 @@ import { FormControl } from 'react-shadow-scope';
 // A checkbox
 <FormControl
   tag="x-checkbox"
+  stylesheets={[theme, css``]}
   control="checkbox"
   name="agree"
   checked={checked}
@@ -270,6 +272,7 @@ import { FormControl } from 'react-shadow-scope';
 // A submit button
 <FormControl
   tag="x-button"
+  stylesheets={[theme, css``]}
   control="button"
   type="submit" // default when nested in a form
 >
@@ -289,6 +292,7 @@ The `FormControl` component accepts different configurations based on the type o
   ```jsx
   <FormControl
     tag="x-input"
+    stylesheets={[theme, css``]}
     control="text" // or any text type
     value={string} // current value
     name={string} // field name
@@ -303,7 +307,8 @@ The `FormControl` component accepts different configurations based on the type o
 
   ```jsx
   <FormControl
-    tag="x-input"
+    tag="x-checkbox"
+    stylesheets={[theme, css``]}
     control="checkbox" // or 'radio'
     checked={boolean} // is it checked?
   />
@@ -313,7 +318,8 @@ The `FormControl` component accepts different configurations based on the type o
 
   ```jsx
   <FormControl
-    tag="x-input"
+    tag="x-number-input"
+    stylesheets={[theme, css``]}
     control="number" // or any range/date type
     value={string} // current value
     min={string | number} // minimum value
@@ -326,7 +332,8 @@ The `FormControl` component accepts different configurations based on the type o
 
   ```jsx
   <FormControl
-    tag="x-input"
+    tag="x-button"
+    stylesheets={[theme, css``]}
     control="button" // or image
     type="button" // or submit, reset
   />
