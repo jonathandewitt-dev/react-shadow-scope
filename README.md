@@ -269,23 +269,29 @@ import { FormControl } from 'react-shadow-scope';
 <FormControl
   tag="x-input"
   control="text"
-  value={inputValue}
+  value={value}
+  onInput={handleInput}
 >
-  <input type="text" onInput={handleInput} />
+  <input type="text" />
 </FormControl>
 
 // A checkbox
 <FormControl
   tag="x-checkbox"
   control="checkbox"
-  checked={isChecked}
   name="agree"
+  checked={checked}
+  onChange={handleChange}
 >
-  <input type="checkbox" onChange={onChange} />
+  <input type="checkbox" />
 </FormControl>
 
 // A submit button
-<FormControl tag="x-button" control="button">
+<FormControl
+  tag="x-button"
+  control="button"
+  type="submit" // default when nested in a form
+>
   <button>Submit</button>
 </FormControl>
 ```
@@ -349,12 +355,11 @@ The `FormControl` component accepts different configurations based on the type o
 
 The form control automatically:
 
-- Registers with parent forms
+- Associates with parent forms
+- Supports form values and submission
 - Handles validation states
-- Supports form submission
 - Works with form reset events
-- Manages disabled states
-- Handles required field validation
+- Syncs the state of the host element with nested inputs
 
 All while maintaining shadow DOM encapsulation for your styles.
 
